@@ -9,6 +9,8 @@ import org.json.simple.JSONObject;
 
 import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SystemConfigStore
     implements ISystemConfigStore {
@@ -200,26 +202,45 @@ public class SystemConfigStore
     @Override
     public List<DataStore> getDataStores(int directorJobId) throws ConfigException {
         List<DataStore> stores = new ArrayList<>();
+        Set<String> storeKeys = new HashSet<>();
 
         String basePath = "job." + directorJobId + ".store";
-        JSONObject settings = new JSONObject();
-        DataStore store = new DataStore(this);
+
+        Pattern pattern = Pattern.compile("job\\.[0-9]+\\.store\\.([0-9]+)\\..*?");
 
         Iterator<String> keys = propertyConfiguration.getKeys(basePath);
         while(keys.hasNext()) {
 
-            String key = keys.next().replace(basePath + ".", "");
+            String key = keys.next();
 
-            if(key.equals("type")) {
-                store.setStoreType(propertyConfiguration.getString(basePath + "." + key));
-            } else {
-                settings.put(key, propertyConfiguration.getString(basePath + "." + key));
+            Matcher matcher = pattern.matcher(key);
+            if (matcher.find()) {
+                storeKeys.add(matcher.group(1));
             }
         }
-        store.setPropertiesObject(settings);
 
-        if( store.getStoreType() != null) {
-            stores.add(store);
+        for(String key : storeKeys) {
+
+            JSONObject settings = new JSONObject();
+            DataStore store = new DataStore(this);
+
+            Iterator<String> storeInfo = propertyConfiguration.getKeys(basePath + "." + key);
+            while(storeInfo.hasNext()) {
+
+                String storeKey = storeInfo.next().replace(basePath + "." + key + ".", "");
+
+                if(storeKey.equals("type")) {
+                    store.setStoreType(propertyConfiguration.getString(basePath + "." + key + "." + storeKey));
+                } else {
+                    settings.put(storeKey, propertyConfiguration.getString(basePath + "." + key + "." + storeKey));
+                }
+            }
+
+            store.setPropertiesObject(settings);
+
+            if( store.getStoreType() != null) {
+                stores.add(store);
+            }
         }
 
         return stores;

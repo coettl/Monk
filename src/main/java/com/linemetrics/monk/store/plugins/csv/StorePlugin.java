@@ -43,7 +43,10 @@ public class StorePlugin implements IStore {
             settings.containsKey("csv_file_path")
                 ? (String)settings.get("csv_file_path") : "./";
 
-
+        String lineSeparator =
+            settings.containsKey("csv_line_separator")
+                ? (String)settings.get("csv_line_separator") : System.lineSeparator();
+        lineSeparator = lineSeparator.replaceAll("<CR>", "\r").replaceAll("<LF>", "\n");
 
         for(final Map.Entry<Integer, List<DataItem>> dataStream : items.entrySet()) {
 
@@ -73,27 +76,27 @@ public class StorePlugin implements IStore {
                      )) {
 
                 if (!append && headerTemplate != null) {
-                    out.println(
+                    out.print(
                         TemplateParser.parse(
                             headerTemplate,
                             numberLocale,
                             mi,
                             ctx,
                             null
-                        )
+                        ) + lineSeparator
                     );
                 }
 
 //                System.out.println(items);
 
                 for (DataItem item : dataStream.getValue()) {
-                    out.println(
+                    out.print(
                         TemplateParser.parse(
                             lineTemplate,
                             numberLocale,
                             mi,
                             ctx,
-                            item));
+                            item) + lineSeparator);
                 }
 
             } catch (IOException e) {

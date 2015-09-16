@@ -10,6 +10,7 @@ _site
 *.rej
 *.swo
 *.swp
+*.csv
 *.zip
 *.vi
 *~

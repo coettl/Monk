@@ -34,9 +34,7 @@ public class Director {
 
             for(DirectorJob directorJob : Director.jobs.values()) {
 
-                System.out.println(directorJob);
-
-                JobDetail job = JobBuilder.newJob(DirectorRunner.class)
+                JobDetail job = JobBuilder.newJob(DirectorInitiator.class)
                     .withIdentity("job_" + directorJob.getId(), "directorjob")
                     .usingJobData("job", directorJob.getId())
                     .build();
@@ -54,7 +52,7 @@ public class Director {
                         .withSchedule(
                             CronScheduleBuilder
                                 .cronSchedule(directorJob.getSchedulerMask())
-                                .withMisfireHandlingInstructionIgnoreMisfires())
+                                .withMisfireHandlingInstructionFireAndProceed())
                         .build();
                 }
 

@@ -82,7 +82,7 @@ jeder vollen Stunde ausgeführt. Weitere mögliche Einstellungen findest du
 Daten werden erst zur Laufzeit (zum Abfragezeitpunkt) in das für den Benutzer passende Format umgewandelt.
 
 `batch_size` legt fest, mit welcher Granularität die Daten aus der API geladen werden sollen. Angaben im ISO_8601 Standard.
-Mögliche Werte: `PT1M`, `PT1H`, `PT1D`
+Mögliche Werte: `PT1M`, `PT1H`, `P1D`
 
 `duration` legt fest, was für ein Zeitraum geladen werden soll. Angaben im ISO_8601.
 
@@ -118,12 +118,21 @@ Format ISO_8601. In unserem Fall summieren wir die 1 Minuten-Daten-Pakete von de
 
 Am Ende des Sync Vorganges sollen die Daten persistiert werden. Dies passiert im folgenden Abschnitt
 
-    job.1.store.type=com.linemetrics.monk.store.plugins.csv.StorePlugin
-    job.1.store.csv_number_locale=de_AT
-    job.1.store.csv_file_path=exports/
-    job.1.store.csv_file_template=${job.start:YYYY-mm-dd}.csv
-    job.1.store.csv_header_template=Das ist der Header meiner CSV
-    job.1.store.csv_line_template=${item.start:YYYY-mm-dd HH:mm:ss};${item.end:YYYY-mm-dd HH:mm:ss};${item.value:0.00}
+    job.1.store.1.type=com.linemetrics.monk.store.plugins.csv.StorePlugin
+    job.1.store.1.csv_number_locale=de_AT
+    job.1.store.1.csv_file_path=exports/
+    job.1.store.1.csv_file_template=${job.start:YYYY-mm-dd}.csv
+    job.1.store.1.csv_header_template=Das ist der Header meiner CSV
+    job.1.store.1.csv_line_template=${item.start:YYYY-mm-dd HH:mm:ss};${item.end:YYYY-mm-dd HH:mm:ss};${item.value:0.00}
+
+Die Konfiguration folgt dabei folgenden Aufbau:
+
+    job.[JOB ID].store.[STORE ID].[ATTRIBUTE]=[WERT]
+
+Die Store ID kann beliebig vergeben werden und ermöglicht das verwenden von mehreren Persistierungsarten innerhalb eines Jobs.
+In diesem Beispiel wird als Store ID eine ansteigende nummerische Reihenfolge verwendet, wobei Store 1 die Daten in ein
+CSV persistiert und Daten bei einer bestehenden Datei anhängt werden. Im nächsten Abschnitt wird die Persistierung über das Prefilled
+Plugin vorgestellt, welche als zweiter Store mit der ID 2 konfiguriert wird.
 
 Das Attribut `csv_number_locale` legt das Locale für den Export Vorgang fest. Dies ist vor allem für die richtige
 Formatierung von numerischen Werten wichtig.
@@ -140,6 +149,36 @@ angehängt.
 
 Das Attribut `csv_line_template` legt das Format fest, wie die einzelnen Datenpunkte in das CSV File geschrieben werden
 sollen.
+
+#### Daten-Speicherung mit Prefilled Plugin
+
+Das Prefilled Plugin ermöglicht die Persistierung der Daten ähnlich dem CSV Plugin, allerdings mit dem Unterschied,
+dass die CSV Datei beim Anlegen bereits mit allen konfigurierten Zeitstempeln gefüllt wird. Die Daten werden dann erst
+Schritt für Schritt in die Datei eingefügt.
+
+Beispiel Konfiguration für das Prefilled Plugin
+
+    job.1.store.2.type=com.linemetrics.monk.store.plugins.csv.PrefilledPlugin
+    job.1.store.2.csv_time_scope=PTD
+    job.1.store.2.csv_time_slice=PT15M
+    job.1.store.2.csv_number_locale=de_AT
+    job.1.store.2.csv_file_path=exports/
+    job.1.store.2.csv_file_template=${job.start:YYYY-mm-dd}.csv
+    job.1.store.2.csv_header_template=Das ist der Header meiner CSV
+    job.1.store.2.csv_empty_line_template=${item.start:YYYY-mm-dd HH:mm:ss};${item.end:YYYY-mm-dd HH:mm:ss};
+    job.1.store.2.csv_line_template=${item.start:YYYY-mm-dd HH:mm:ss};${item.end:YYYY-mm-dd HH:mm:ss};${item.value:0.00}
+
+Neben den Attributen des CSV Plugin sind noch folgende weitere Attribute zu konfigurieren:
+
+Das Attribut `csv_time_scope` legt fest, über welchen Zeitraum sich eine einzelne Datei erstreckt. Diese Angabe ist notwendig,
+da das System nicht automatisch über den Dateinamen den Zeitraum extrahieren kann. Angaben im ISO_8601 Format. P1D = 1 Tag
+
+Das Attribut `csv_time_slice` legt fest, über welchen Zeitraum sich ein einzelner Datenpunkt erstreckt. Angaben im ISO_8601 Format.
+PT15M = 15 Minute
+
+Das Attribut `csv_empty_line_template` legt das Format fest, wie die leeren Datenpunkte, die beim Anlegen einer neuen Datei
+für den gesamten Zeitraum geschrieben werden, aussehen sollen. Diese Zeilen werden später durch die tatsächlichen Werte bzw.
+durch die Konfiguration von `csv_line_template` ersetzt.
 
 ### Aktivierte Synchronisierungsvorgänge
 
@@ -292,12 +331,22 @@ Definition laut ISO8601:
     job.1.processor.compression_mode=SUM
     job.1.processor.compression_size=PT15M
 
-    job.1.store.type=com.linemetrics.monk.store.plugins.csv.StorePlugin
-    job.1.store.csv_number_locale=de_AT
-    job.1.store.csv_file_path=exports/
-    job.1.store.csv_file_template=${job.start:YYYY-mm-dd}.csv
-    job.1.store.csv_header_template=Das ist der Header meiner CSV
-    job.1.store.csv_line_template=${item.start:YYYY-mm-dd HH:mm:ss};${item.end:YYYY-mm-dd HH:mm:ss};${item.value:0.00}
+    job.1.store.1.type=com.linemetrics.monk.store.plugins.csv.StorePlugin
+    job.1.store.1.csv_number_locale=de_AT
+    job.1.store.1.csv_file_path=exports/
+    job.1.store.1.csv_file_template=${job.start:YYYY-mm-dd}.csv
+    job.1.store.1.csv_header_template=Das ist der Header meiner CSV
+    job.1.store.1.csv_line_template=${item.start:YYYY-mm-dd HH:mm:ss};${item.end:YYYY-mm-dd HH:mm:ss};${item.value:0.00}
+    
+    job.1.store.2.type=com.linemetrics.monk.store.plugins.csv.PrefilledPlugin
+    job.1.store.2.csv_time_scope=P1D
+    job.1.store.2.csv_time_slice=PT15M
+    job.1.store.2.csv_number_locale=de_AT
+    job.1.store.2.csv_file_path=exports/
+    job.1.store.2.csv_file_template=${job.start:YYYY-mm-dd}.csv
+    job.1.store.2.csv_header_template=Das ist der Header meiner CSV
+    job.1.store.2.csv_empty_line_template=${item.start:YYYY-mm-dd HH:mm:ss};${item.end:YYYY-mm-dd HH:mm:ss};
+    job.1.store.2.csv_line_template=${item.start:YYYY-mm-dd HH:mm:ss};${item.end:YYYY-mm-dd HH:mm:ss};${item.value:0.00}
 
     activated_jobs=1
 

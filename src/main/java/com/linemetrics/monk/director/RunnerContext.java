@@ -6,15 +6,18 @@ import org.json.simple.JSONValue;
 
 public class RunnerContext {
 
+    Integer jobId;
     Long timeFrom;
     Long timeTo;
     Long batchSize;
     String timezone;
 
     public RunnerContext(
+            int jobId,
             long timeFrom, long timeTo,
             long batchSize, String timezone) {
 
+        this.jobId      = jobId;
         this.timeFrom   = timeFrom;
         this.timeTo     = timeTo;
         this.batchSize  = batchSize;
@@ -29,6 +32,7 @@ public class RunnerContext {
         }
 
         return new RunnerContext(
+            (Integer)jsonObj.get("jobId"),
             (Long)jsonObj.get("timeFrom"),
             (Long)jsonObj.get("timeTo"),
             (Long)jsonObj.get("batchSize"),
@@ -38,11 +42,16 @@ public class RunnerContext {
 
     public String toJSONString() {
         JSONObject obj=new JSONObject();
+        obj.put("jobId", getJobId());
         obj.put("timeFrom", getTimeFrom());
         obj.put("timeTo", getTimeTo());
         obj.put("batchSize", getBatchSize());
         obj.put("timezone", getTimezone());
         return obj.toJSONString();
+    }
+
+    public int getJobId() {
+        return jobId;
     }
 
     public long getTimeFrom() {

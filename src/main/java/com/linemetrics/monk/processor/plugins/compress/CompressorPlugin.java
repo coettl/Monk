@@ -35,6 +35,11 @@ public class CompressorPlugin implements IProcessor {
                 ? (String)settings.get("compression_size")
                 : "PT15M";
 
+        Integer compressionBatchItemCount =
+            settings.containsKey("compression_batch_item_count")
+                ? Integer.valueOf((String)settings.get("compression_batch_item_count"))
+                : null;
+
         long compressionSizeMillis = new Period(compressionSize).toStandardDuration().getMillis();
 
         long startTime = ctx.getTimeFrom();
@@ -62,9 +67,14 @@ public class CompressorPlugin implements IProcessor {
 //            System.out.println("Loop " + item);
 
             if(item.getTimestamp() > compressionEndTime) {
-                if(cnt != null) {
+                if(cnt != null && (compressionBatchItemCount == null || compressionBatchItemCount.longValue() == cnt)) {
                     newList.add(createNewItem(startTime,compressionEndTime, min, max, cnt, sum, compressionMode));
+                } else {
+                    System.err.format("No valid compression available for %d-%d cnt#%d\n\r",
+                        startTime, compressionEndTime,
+                        cnt == null ? 0 : cnt);
                 }
+
                 sum = min = max = null;
                 cnt = null;
 
@@ -79,11 +89,15 @@ public class CompressorPlugin implements IProcessor {
             tmpMax = (item.getMax() == null ? item.getValue() : item.getMax());
             min = (min == null) ? tmpMin : (tmpMin < min) ? tmpMin : min;
             max = (max == null) ? tmpMax : (tmpMax > max) ? tmpMax : max;
-            cnt = (cnt == null) ? 1 : cnt++;
+            cnt = (cnt == null) ? 1 : cnt + 1;
         }
 
-        if(cnt != null) {
+        if(cnt != null && (compressionBatchItemCount == null || compressionBatchItemCount.longValue() == cnt)) {
             newList.add(createNewItem(startTime, compressionEndTime, min, max, cnt, sum, compressionMode));
+        } else {
+            System.err.format("No valid compression available for %d-%d cnt#%d\n\r",
+                startTime, compressionEndTime,
+                cnt == null ? 0 : cnt);
         }
 
         Collections.sort(newList, new DataItemComparator());
