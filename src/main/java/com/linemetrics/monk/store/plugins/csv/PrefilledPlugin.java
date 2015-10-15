@@ -68,89 +68,16 @@ public class PrefilledPlugin implements IStore {
                 putAll(dataStreamMetaInfos.get(dataStream.getKey()));
             }};
 
-            FileCache fileCache;
-            boolean initialCreation = false;
-
-            File exportFile = new File(
-                filePath,
-                TemplateParser.parse(
-                    fileTemplate,
-                    numberLocale,
-                    mi,
-                    ctx,
-                    null
-                )
-            );
-
-            String fileAddress = exportFile.getAbsolutePath();
-
-            if (checkedFiles.containsKey(fileAddress)) {
-                fileCache = checkedFiles.get(fileAddress);
-            } else {
-                fileCache = new FileCache();
-                fileCache.fileExists = exportFile.exists();
-                fileCache.lineCache = new ArrayList<String>();
-
-                checkedFiles.put(fileAddress, fileCache);
-
-                if(fileCache.fileExists == false) {
-                    initialCreation = true;
-                }
-            }
-
-            if (!fileCache.fileExists && initialCreation) {
-
-                if (headerTemplate != null && initialCreation) {
-                    fileCache.lineCache.add(
-                        TemplateParser.parse(
-                            headerTemplate,
-                            numberLocale,
-                            mi,
-                            ctx,
-                            null
-                        )
-                    );
-                }
-            }
-
-            if(!fileCache.fileExists) {
-
-                long timeScopeMillis = new Period(timeScope).toStandardDuration().getMillis();
-                long timeSliceMillis = new Period(timeSlice).toStandardDuration().getMillis();
-
-                long startTime = ctx.getTimeFrom();
-                long timeScopeEndMillis = ctx.getTimeFrom() + timeScopeMillis;
-
-                DataItem di = DataItem.empty();
-                for (long ts = startTime; ts < timeScopeEndMillis; ts += timeSliceMillis) {
-
-                    di.setTimestampStart(ts);
-                    di.setTimestampEnd(ts + timeSliceMillis);
-
-                    fileCache.lineCache.add(TemplateParser.parse(
-                        emptyLineTemplate,
-                        numberLocale,
-                        mi,
-                        ctx,
-                        di));
-                }
-            }
-
-            if(fileCache.fileExists && fileCache.lineCache.isEmpty()) {
-                try (BufferedReader br = new BufferedReader(new FileReader(exportFile))) {
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        fileCache.lineCache.add(line);
-                    }
-                } catch (IOException e) {
-                    throw new ProcessorException("Unable to read-in export file: " + e.getMessage());
-                }
-            }
-
             String lineKey, newLine;
             int indexOfKey;
+            FileCache fileCache;
 
             for (DataItem item : dataStream.getValue()) {
+
+                fileCache = getFileCache(
+                    checkedFiles, filePath, headerTemplate, timeScope, timeSlice,
+                    fileTemplate, emptyLineTemplate,
+                    numberLocale,  mi, ctx, item);
 
                 lineKey = TemplateParser.parse(
                     emptyLineTemplate,
@@ -200,6 +127,92 @@ public class PrefilledPlugin implements IStore {
 //        System.out.println(TemplateParser.parse(lineTemplate, numberLocale, metaInfos, ctx, null));
 
         return true;
+    }
+
+    public FileCache getFileCache(
+            Map<String, FileCache> checkedFiles,
+            String filePath,
+            String headerTemplate,
+            String timeScope,
+            String timeSlice,
+            String fileTemplate,
+            String emptyLineTemplate,
+            String numberLocale,
+            Map<String, String> mi,
+            RunnerContext ctx,
+            DataItem item) throws ProcessorException {
+
+        FileCache fileCache;
+
+        String fileAddress = TemplateParser.parse(
+                                fileTemplate,
+                                numberLocale,
+                                mi,
+                                ctx,
+                                null
+                            );
+
+        if (checkedFiles.containsKey(fileAddress)) {
+            return checkedFiles.get(fileAddress);
+        }
+
+        File exportFile = new File(
+            filePath, fileAddress
+        );
+
+        fileCache = new FileCache();
+        fileCache.fileExists = exportFile.exists();
+        fileCache.lineCache = new ArrayList<String>();
+
+        checkedFiles.put(fileAddress, fileCache);
+
+        if( ! fileCache.fileExists  && headerTemplate != null ) {
+            fileCache.lineCache.add(
+                TemplateParser.parse(
+                    headerTemplate,
+                    numberLocale,
+                    mi,
+                    ctx,
+                    item
+                )
+            );
+        }
+
+        if(!fileCache.fileExists) {
+
+            long timeScopeMillis = new Period(timeScope).toStandardDuration().getMillis();
+            long timeSliceMillis = new Period(timeSlice).toStandardDuration().getMillis();
+
+            long startTime = ctx.getTimeFrom();
+            long timeScopeEndMillis = ctx.getTimeFrom() + timeScopeMillis;
+
+            DataItem di = DataItem.empty();
+            for (long ts = startTime; ts < timeScopeEndMillis; ts += timeSliceMillis) {
+
+                di.setTimestampStart(ts);
+                di.setTimestampEnd(ts + timeSliceMillis);
+
+                fileCache.lineCache.add(TemplateParser.parse(
+                    emptyLineTemplate,
+                    numberLocale,
+                    mi,
+                    ctx,
+                    di));
+            }
+        }
+
+        if(fileCache.fileExists && fileCache.lineCache.isEmpty()) {
+            try (BufferedReader br = new BufferedReader(new FileReader(exportFile))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    fileCache.lineCache.add(line);
+                }
+            } catch (IOException e) {
+                throw new ProcessorException("Unable to read-in export file: " + e.getMessage());
+            }
+        }
+
+        return fileCache;
     }
 
     public class FileCache {

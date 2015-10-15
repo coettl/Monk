@@ -11,7 +11,6 @@ _site
 *.swo
 *.swp
 *.csv
-*.zip
 *.vi
 *~
 *.php
