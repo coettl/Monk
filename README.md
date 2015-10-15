@@ -1,7 +1,7 @@
 # LineMetrics Offline Sync Tool - Data Monk
 
-    Version:           0.1 **BETA**
-    Datum:             30.4.2015
+    Version:           1.3
+    Datum:             15.10.2015
     Verantwortlicher:  Thomas Pillmayr <t.pillmayr@linemetrics.com>
 
 Data Monk ist ein Tool von LineMetrics, dass OpenSource zur Verfügung gestellt wird und es Kunden erlaubt,
