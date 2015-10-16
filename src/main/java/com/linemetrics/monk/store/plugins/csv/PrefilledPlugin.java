@@ -152,13 +152,15 @@ public class PrefilledPlugin implements IStore {
                                 null
                             );
 
-        if (checkedFiles.containsKey(fileAddress)) {
-            return checkedFiles.get(fileAddress);
-        }
-
         File exportFile = new File(
             filePath, fileAddress
         );
+
+        fileAddress = exportFile.getAbsolutePath();
+
+        if (checkedFiles.containsKey(fileAddress)) {
+            return checkedFiles.get(fileAddress);
+        }
 
         fileCache = new FileCache();
         fileCache.fileExists = exportFile.exists();
