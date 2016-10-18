@@ -14,9 +14,6 @@ public class DirectorInitiator implements Job {
         try {
             JobDataMap dataMap = jobExecutionContext.getJobDetail().getJobDataMap();
 
-            /** Wait for 10s in order to be sure, that data is processed */
-            Thread.sleep(10000);
-
             if( ! dataMap.containsKey("job") ||
                 ! (dataMap.get("job") instanceof Integer)) {
                 return;

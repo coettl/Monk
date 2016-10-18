@@ -7,11 +7,15 @@ import com.linemetrics.monk.processor.ProcessorException;
 import com.linemetrics.monk.store.IStore;
 import org.joda.time.Period;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
 
 public class PrefilledPlugin implements IStore {
+
+    private static final Logger logger = LoggerFactory.getLogger(PrefilledPlugin.class);
 
     @Override
     public boolean store(
@@ -21,6 +25,9 @@ public class PrefilledPlugin implements IStore {
             final Map<Integer, Map<String, String>> dataStreamMetaInfos,
             Map<Integer, List<DataItem>> items)
         throws ProcessorException {
+
+        logger.debug("Write prefilled file with settings: " + settings);
+        logger.debug("And context: " + ctx);
 
         String timeScope =
             settings.containsKey("csv_time_scope")
@@ -95,10 +102,13 @@ public class PrefilledPlugin implements IStore {
 
                 indexOfKey = fileCache.lineCache.indexOf(lineKey);
 
+                String id = "[" + indexOfKey + "] ";
+
                 if (indexOfKey >= 0) {
                     fileCache.lineCache.set(indexOfKey, newLine);
+                    logger.info(id + "Write line: " + newLine + ", at index: " + lineKey);
                 } else {
-                    System.err.println("Unable to find slice of line: " + newLine + ", searching for: " + lineKey);
+                    logger.error(id + "Unable to find slice of line: " + newLine + ", searching for: " + lineKey);
                 }
             }
         }

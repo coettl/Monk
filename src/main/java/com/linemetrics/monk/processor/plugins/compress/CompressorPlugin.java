@@ -48,8 +48,7 @@ public class CompressorPlugin implements IProcessor {
         Iterator<DataItem> itemIterator = items.iterator();
         List<DataItem> newList = new ArrayList<>();
 
-        DataItem item, newItem = new DataItem(null);
-        newItem.setTimestamp(startTime);
+        DataItem item;
 
         Double sum = null, min = null, tmpMin, max = null, tmpMax;
         Long   cnt = null;
@@ -68,7 +67,9 @@ public class CompressorPlugin implements IProcessor {
 
             if(item.getTimestamp() > compressionEndTime) {
                 if(cnt != null && (compressionBatchItemCount == null || compressionBatchItemCount.longValue() == cnt)) {
-                    newList.add(createNewItem(startTime,compressionEndTime, min, max, cnt, sum, compressionMode));
+                    DataItem newItem = createNewItem(startTime,compressionEndTime, min, max, cnt, sum, compressionMode);
+                    System.err.println(newItem);
+                    newList.add(newItem);
                 } else {
                     System.err.format("No valid compression available for %d-%d cnt#%d\n\r",
                         startTime, compressionEndTime,
@@ -93,7 +94,9 @@ public class CompressorPlugin implements IProcessor {
         }
 
         if(cnt != null && (compressionBatchItemCount == null || compressionBatchItemCount.longValue() == cnt)) {
-            newList.add(createNewItem(startTime, compressionEndTime, min, max, cnt, sum, compressionMode));
+            DataItem newItem = createNewItem(startTime, compressionEndTime, min, max, cnt, sum, compressionMode);
+            System.err.println(newItem);
+            newList.add(newItem);
         } else {
             System.err.format("No valid compression available for %d-%d cnt#%d\n\r",
                 startTime, compressionEndTime,

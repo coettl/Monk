@@ -10,11 +10,15 @@ import com.linemetrics.monk.processor.IProcessor;
 import com.linemetrics.monk.processor.ProcessorFactory;
 import com.linemetrics.monk.store.IStore;
 import com.linemetrics.monk.store.StoreFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class DirectorRunner {
+
+    private static final Logger logger = LoggerFactory.getLogger(DirectorRunner.class);
 
     public static final int WAIT_FOR_NEW_CONTEXT = 1000;
 
@@ -60,7 +64,12 @@ public class DirectorRunner {
                     if (ctx == null) {
                         Thread.sleep(WAIT_FOR_NEW_CONTEXT);
                         continue;
+                    } else {
+                        /** Wait for 10s in order to be sure, that data is processed */
+                        Thread.sleep(10000);
                     }
+
+                    String logPrefix = "[" + ctx.getJobId() + "] ";
 
                     this.initializeEnvironment(ctx.getJobId());
 
@@ -68,9 +77,9 @@ public class DirectorRunner {
 
                     for(DataStream ds : dataStreams) {
 
-                        System.out.println(
+                        logger.debug(
                             String.format(
-                                "Query DataStream %d for TimeRange %d-%d, TimeZone %s, TDB %s",
+                                logPrefix + "Query DataStream %d for TimeRange %d-%d, TimeZone %s, TDB %s",
                                 ds.getDataStreamId(),
                                 ctx.getTimeFrom(), ctx.getTimeTo(), job.getTimeZone(), TDB.fromMilliseconds(ctx.getBatchSize()).name()));
 
@@ -86,10 +95,16 @@ public class DirectorRunner {
 
                     Iterator<Map.Entry<Integer, List<DataItem>>> processorIterator = data.entrySet().iterator();
                     while(processorIterator.hasNext()) {
+
                         Map.Entry<Integer, List<DataItem>> dataItemData = processorIterator.next();
                         List<DataItem> dataItems = dataItemData.getValue();
 
+                        logger.debug(logPrefix + "Do start processing of " + dataItemData.getKey());
+
                         for(DataProcessor processor : processors) {
+
+                            logger.debug(logPrefix + "  - Do process of " + dataItemData.getKey() + " with " + processor.getProcessorType());
+
                             IProcessor proc = ProcessorFactory.getProcessor(processor.getProcessorType());
                             List<DataItem> newItems = proc.process(ctx, processor.getPropertiesObject(), dataItems);
                             dataItems = newItems;
@@ -100,6 +115,17 @@ public class DirectorRunner {
 
                     for(DataStore store : dataStores) {
                         IStore proc = StoreFactory.getStore(store.getStoreType());
+
+                        logger.debug(logPrefix + "Do start store of data with" + store.getStoreType());
+
+                        Iterator<Map.Entry<Integer, List<DataItem>>> iterator = data.entrySet().iterator();
+                        while(iterator.hasNext()) {
+
+                            Map.Entry<Integer, List<DataItem>> dataItemData = iterator.next();
+
+                            logger.debug(logPrefix + " - Stream " + dataItemData.getKey() + " with " + dataItemData.getValue().size() + " values: " + data);
+                        }
+
                         proc.store(ctx, store.getPropertiesObject(), jobMetaInfo, dataStreamMetaInfo, data);
                     }
                 } catch(Exception ex) {
