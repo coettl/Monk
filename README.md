@@ -1,7 +1,7 @@
-# LineMetrics Offline Sync Tool - Data Monk
+``````****``````# LineMetrics Offline Sync Tool - Data Monk
 
-    Version:           1.3
-    Datum:             15.10.2015
+    Version:           1.5
+    Datum:             10.01.2017
     Verantwortlicher:  Thomas Pillmayr <t.pillmayr@linemetrics.com>
 
 Data Monk ist ein Tool von LineMetrics, dass OpenSource zur Verfügung gestellt wird und es Kunden erlaubt,
@@ -77,6 +77,10 @@ Mit der Einstellung `scheduler_mask` wird konfiguriert, wie oft die Daten synchr
 In der oben angeführten Einstellung wird der Synchronisierungsvorgang Montag-Samstag zwischen 8:00 und 17:00 zu
 jeder vollen Stunde ausgeführt. Weitere mögliche Einstellungen findest du
 [hier](http://www.quartz-scheduler.org/documentation/quartz-2.x/tutorials/crontrigger).
+
+Zum Testen gibt es noch die Möglichkeit bei der `scheduler_mask` den Wert `NOW` zu hinterlegen, was dazu führt, dass der
+Vorgang nur einmal beim Starten des Programmes ausgeführt wird. Diese Funktionalität dient vorwiegend zum Testen einer
+neuen Konfiguration, ohne dass man jedesmal auf einen bestimmten zeitlichen Trigger warten muss.
 
 `timezone` regelt das Zeitformat der gespeicherten Daten. In der LineMetrics Cloud werden alle Daten im UTC Format gespeichert.
 Daten werden erst zur Laufzeit (zum Abfragezeitpunkt) in das für den Benutzer passende Format umgewandelt.
@@ -179,6 +183,32 @@ PT15M = 15 Minute
 Das Attribut `csv_empty_line_template` legt das Format fest, wie die leeren Datenpunkte, die beim Anlegen einer neuen Datei
 für den gesamten Zeitraum geschrieben werden, aussehen sollen. Diese Zeilen werden später durch die tatsächlichen Werte bzw.
 durch die Konfiguration von `csv_line_template` ersetzt.
+
+#### Daten-Weiterleitung an LineMetrics v3
+
+Das Bridge Plugin ermöglicht das Weiterleiten von Daten aus der v2 Umgebung in die v3 Umgebung. Wichtig hier ist, dass zuvor
+in der v3 Umgebung ein gültiger REST Api Zugang und das Objektmodell (inklusive Messpunkte mit eindeutiger
+Adressierung über Custom-Key & Alias -> Details [hier](https://rest-api-doc.linemetrics.com/#adressierung) )
+angelegt wurden.
+
+Beispiel Konfiguration für das Bridge Plugin
+
+    job.1.store.1.type=com.linemetrics.monk.store.plugins.lm3.BridgePlugin
+    job.1.store.1.oauth_client_id=api_5a...
+    job.1.store.1.oauth_client_secret=0a59...
+    job.1.store.1.connection_url=https://lm3api.linemetrics.com/v2/data/
+    job.1.store.1.oauth_client_url=https://lm3api.linemetrics.com/oauth/access_token
+    job.1.store.1.items_per_request=1024
+
+Über die Attribute `oauth_client_id` und `oauth_client_secret` werden die Credentials für den REST Api Zugang der v3
+Umgebung definiert.
+
+Das Attribute `connection_url` definiert den Endpunkt zum Schreiben der eigentlichen Nutzdaten und das Attribut
+`oauth_client_url` definiert den Endpunkt zum Erzeugen des OAuth Authentifizierungstoken. Diese Einstellungen müssen
+im Normalfall nicht adaptiert werden.
+
+Über das Attribut `items_per_request` kann die Größe der Batches definiert werden, welche über die REST Api innerhalb
+eines Requests übertragen werden.
 
 ### Aktivierte Synchronisierungsvorgänge
 
@@ -314,7 +344,9 @@ Definition laut ISO8601:
       0.000,00           1212,6         =>    1.212,60
           #                 2,3         =>        2
 
-## Vollständige Konfiguration
+## Vollständige Konfigurationen
+
+### Periodisches Exportieren in Dateien
 
     api.endpoint=http://bapi.linemetrics.com:8002
     api.hash=ABCDEFG...
@@ -352,6 +384,33 @@ Definition laut ISO8601:
 
     meta.job.1.data_type=Energy Consumption
     meta.datastream.8782.customer_id=1234
+    
+### Periodisches Übertragen an REST Endpunkt
+
+    api.endpoint=http://bapi.linemetrics.com:8002
+    api.hash=ABCDEFG...
+
+    job.1.info.scheduler_mask=0 0 8-17 ? * MON-SAT
+    job.1.info.timezone=Europe/Vienna
+    job.1.info.batch_size=PT1m
+    job.1.info.duration=PT1H
+
+    job.1.datastream=123
+    job.1.datastream=456
+
+    job.1.store.1.type=com.linemetrics.monk.store.plugins.lm3.BridgePlugin
+    job.1.store.1.connection_url=https://lm3api.linemetrics.com/v2/data/
+    job.1.store.1.oauth_client_id=api_ABC...
+    job.1.store.1.oauth_client_secret=ABC...
+    job.1.store.1.oauth_client_url=https://lm3api.linemetrics.com/oauth/access_token
+    job.1.store.1.items_per_request=1024
+
+    activated_jobs=1
+    meta.datastream.15459.custom_key=Maschine
+    meta.datastream.15459.alias=Messpunkt1
+
+    meta.datastream.15457.custom_key=Maschine
+    meta.datastream.15457.alias=Messpunkt2
     
 ## Starten / Ausführen des Programms
 

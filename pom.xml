@@ -6,7 +6,7 @@
 
     <groupId>com.linemetrics.monk</groupId>
     <artifactId>core</artifactId>
-    <version>1.4</version>
+    <version>1.5</version>
     <packaging>jar</packaging>
 
     <licenses>
@@ -80,6 +80,11 @@
             <groupId>org.apache.clerezza.ext</groupId>
             <artifactId>org.json.simple</artifactId>
             <version>0.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.owlike</groupId>
+            <artifactId>genson</artifactId>
+            <version>1.3</version>
         </dependency>
     </dependencies>
 
