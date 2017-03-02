@@ -184,6 +184,42 @@ Das Attribut `csv_empty_line_template` legt das Format fest, wie die leeren Date
 für den gesamten Zeitraum geschrieben werden, aussehen sollen. Diese Zeilen werden später durch die tatsächlichen Werte bzw.
 durch die Konfiguration von `csv_line_template` ersetzt.
 
+#### Daten-Weiterleitung an Mail-Adresse
+
+Das Mail Plugin ermöglicht das Versenden der Daten als CSV Datei an eine oder mehrere Email-Adressen.
+
+Beispiel Konfiguration für das Mail Plugin:
+
+	job.1.store.1.type=com.linemetrics.monk.store.plugins.mail.MailPlugin
+	job.1.store.1.csv_number_locale=de_AT
+	job.1.store.1.csv_file_template=${job.start:yyyy-MM-dd}.csv
+	job.1.store.1.csv_header_template=Das ist der Header meiner CSV mit einer Meta Info ${meta.clientID}
+	job.1.store.1.csv_line_template=${item.start:yyyy-MM-dd HH:mm:ss};${item.end:yyyy-MM-dd HH:mm:ss};${item.value:0.00};${meta.customer_id}
+	job.1.store.1.csv_line_separator=<LF>
+	job.1.store.1.mail_receiver=empfaenger@test.com
+	job.1.store.1.mail_subject=Linemetrics CSV Export
+	job.1.store.1.mail_attachment=true
+	job.1.store.1.mail_smtp_host=smtp.test.com
+	job.1.store.1.mail_smtp_sender=sender@test.com
+	job.1.store.1.mail_smtp_user=username
+	job.1.store.1.mail_smtp_password=password
+	job.1.store.1.mail_smtp_port=465
+	job.1.store.1.mail_smtp_tlsenabled=true
+
+Neben den Attributen des CSV Plugin sind noch folgende weitere Attribute zu konfigurieren:
+
+Das Attribut `mail_receiver` legt fest an welche Email-Adressen die Daten gesendet werden sollen. 
+Mit Beistrich getrennt können auch mehrere Email-Adressen angegeben werden.
+
+Das Attribut `mail_subject` legt den Betreff fest.
+
+Das Attribut `mail_attachment` kann die Werte `true` und `false` besitzen und entscheidet darüber ob die Daten als CSV-Datei im Anhang versendet werden sollen (=true) oder direkt als Text in die Email geschrieben werden sollen.
+
+Das Attribut `mail_smtp_host` gibt den SMTP-Host an, über den die Email verschickt werden soll. 
+`mail_smtp_sender` gibt die Sender-Email Adresse an. 
+`mail_smtp_user` und `mail_smtp_password` konfigurieren den User der am SMTP-Host über die nötigen Berechtigungen verfügt. 
+Zusätzlich muss mit `mail_smtp_port` noch der Port des SMTP-Host angegeben werden und ob der SMTP-Host TLS verwenden soll (`mail_smtp_tlsenabled`).
+
 #### Daten-Weiterleitung an LineMetrics v3
 
 Das Bridge Plugin ermöglicht das Weiterleiten von Daten aus der v2 Umgebung in die v3 Umgebung. Wichtig hier ist, dass zuvor
@@ -405,6 +441,42 @@ Definition laut ISO8601:
     job.1.store.1.oauth_client_url=https://lm3api.linemetrics.com/oauth/access_token
     job.1.store.1.items_per_request=1024
 
+    activated_jobs=1
+    meta.datastream.15459.custom_key=Maschine
+    meta.datastream.15459.alias=Messpunkt1
+
+    meta.datastream.15457.custom_key=Maschine
+    meta.datastream.15457.alias=Messpunkt2
+    
+### Periodisches Versenden an Mail-Adresse   
+  
+    api.endpoint=http://bapi.linemetrics.com:8002
+    api.hash=ABCDEFG...
+
+    job.1.info.scheduler_mask=0 0 8-17 ? * MON-SAT
+    job.1.info.timezone=Europe/Vienna
+    job.1.info.batch_size=PT1m
+    job.1.info.duration=PT1H
+
+    job.1.datastream=123
+    job.1.datastream=456
+    
+    job.1.store.1.type=com.linemetrics.monk.store.plugins.mail.MailPlugin
+    job.1.store.1.csv_number_locale=de_AT
+    job.1.store.1.csv_file_template=${job.start:yyyy-MM-dd}.csv
+    job.1.store.1.csv_header_template=Das ist der Header meiner CSV mit einer Meta Info ${meta.clientID}
+    job.1.store.1.csv_line_template=${item.start:yyyy-MM-dd HH:mm:ss};${item.end:yyyy-MM-dd HH:mm:ss};${item.value:0.00};${meta.customer_id}
+    job.1.store.1.csv_line_separator=<LF>
+    job.1.store.1.mail_receiver=empfaenger@test.com
+    job.1.store.1.mail_subject=Linemetrics CSV Export
+    job.1.store.1.mail_attachment=true
+    job.1.store.1.mail_smtp_host=smtp.test.com
+    job.1.store.1.mail_smtp_sender=sender@test.com
+    job.1.store.1.mail_smtp_user=username
+    job.1.store.1.mail_smtp_password=password
+    job.1.store.1.mail_smtp_port=465
+    job.1.store.1.mail_smtp_tlsenabled=true
+    
     activated_jobs=1
     meta.datastream.15459.custom_key=Maschine
     meta.datastream.15459.alias=Messpunkt1
