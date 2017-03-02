@@ -5,7 +5,10 @@ import com.linemetrics.monk.director.RunnerContext;
 import com.linemetrics.monk.helper.TemplateParser;
 import com.linemetrics.monk.processor.ProcessorException;
 import com.linemetrics.monk.store.IStore;
+import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.activation.DataHandler;
 import javax.mail.BodyPart;
@@ -22,6 +25,9 @@ import java.util.Map;
  * Created by Klemens on 01.03.2017.
  */
 public class MailPlugin implements IStore {
+
+    private static final Logger logger = LoggerFactory.getLogger(MailPlugin.class);
+
 
     @Override
     public boolean store(RunnerContext ctx, JSONObject settings, Map<String, String> metaInfos, Map<Integer, Map<String, String>> dataStreamMetaInfos, Map<Integer, List<DataItem>> items) throws ProcessorException {
@@ -81,15 +87,27 @@ public class MailPlugin implements IStore {
         MailFacade facade = new MailFacade(mailSmtpHost, mailSmtpPort, mailSmtpTls, mailSmtpUser, mailSmtpPw, mailSmtpSender);
 
         if (mailAttachment) {
-            facade.send(mailReceiver,
-                    mailSubject,
-                    null,
-                    this.getAttachmentList(ctx, metaInfos, dataStreamMetaInfos, fileTemplate, numberLocale, headerTemplate, lineSeparator, lineTemplate, items));
+            final List<BodyPart> attachments = this.getAttachmentList(ctx, metaInfos, dataStreamMetaInfos, fileTemplate, numberLocale, headerTemplate, lineSeparator, lineTemplate, items);
+            if(attachments != null && attachments.size() > 0){
+                facade.send(mailReceiver,
+                        mailSubject,
+                        null,
+                        attachments);
+            } else {
+                logger.info("No data found");
+            }
+
         } else {
-            facade.send(mailReceiver,
-                    mailSubject,
-                    this.getBody(ctx, metaInfos, dataStreamMetaInfos, fileTemplate, numberLocale, headerTemplate, lineSeparator, lineTemplate, items),
-                    null);
+            final String body = this.getBody(ctx, metaInfos, dataStreamMetaInfos, fileTemplate, numberLocale, headerTemplate, lineSeparator, lineTemplate, items);
+            if(StringUtils.isNotEmpty(body)){
+                facade.send(mailReceiver,
+                        mailSubject,
+                        body,
+                        null);
+            } else {
+                logger.info("No data found");
+            }
+
         }
 
         return true;

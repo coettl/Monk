@@ -71,23 +71,21 @@ public class MailFacade {
                      final String sText,
                      final List<BodyPart> lAttachmentList) throws ProcessorException {
 
-        final Session session = Session.getDefaultInstance(this.properties, new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(user, password);
-            }
-        });
+        Session session = null;
+        try {
+            session = Session.getDefaultInstance(this.properties, new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(user, password);
+                }
+            });
+        } catch(Exception e){
+            throw new ProcessorException("Error creating Mail-session: "+e.getMessage());
+        }
 
         final MimeMessage message = new MimeMessage(session);
         final Multipart multipart = new MimeMultipart();
         final BodyPart bodypart = new MimeBodyPart();
-
-        logger.debug(String.format("Mail params:"));
-        logger.debug(String.format(" - From: %s", this.sender));
-        logger.debug(String.format(" - To: %s", sReceiver));
-        logger.debug(String.format(" - Host: %s", (String) properties.get(PROPERTY_SMTP_HOST)));
-        logger.debug(String.format(" - Port: %s", (String) properties.get(PROPERTY_SMTP_PORT)));
-        logger.debug(String.format(" - TLS: %s", (String) properties.get(PROPERTY_SMTP_TLS)));
 
         try {
             message.setFrom(new InternetAddress(this.sender));
@@ -95,6 +93,8 @@ public class MailFacade {
                 for(final String receiver : Arrays.asList(sReceiver.split(","))){
                     message.addRecipient(Message.RecipientType.TO, new InternetAddress(receiver));
                 }
+            } else {
+                throw new ProcessorException("Email Receiver is not defined");
             }
             message.setSubject(StringUtils.isNotEmpty(sSubject) ? sSubject : "Linemetrics CSV Export");
             bodypart.setText(StringUtils.isNotEmpty(sText) ? sText : "Der CSV-Export befindet sich im Anhang.");
