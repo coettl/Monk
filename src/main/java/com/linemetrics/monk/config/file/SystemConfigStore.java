@@ -6,6 +6,8 @@ import com.linemetrics.monk.config.dao.*;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.util.*;
@@ -14,6 +16,8 @@ import java.util.regex.Pattern;
 
 public class SystemConfigStore
     implements ISystemConfigStore {
+
+    private static final Logger logger = LoggerFactory.getLogger(SystemConfigStore.class);
 
     private String propertyFile = null;
 
@@ -55,7 +59,10 @@ public class SystemConfigStore
         return new Api(
             this,
             propertyConfiguration.getString("api.endpoint"),
-            propertyConfiguration.getString("api.hash")
+            propertyConfiguration.getString("api.hash"),
+            propertyConfiguration.getString("api.client_id"),
+            propertyConfiguration.getString("api.client_secret"),
+            propertyConfiguration.getString("api.version")
         );
     }
 
@@ -102,15 +109,30 @@ public class SystemConfigStore
     @Override
     public List<DataStream> getDataStreams(int directorJobId) throws ConfigException {
         List<DataStream> dataStreams = new ArrayList<>();
+        Set<String> datastreamKeys = new HashSet<>();
+        String basePath = "job." + directorJobId + ".datastream";
+        Pattern pattern = Pattern.compile("job\\.[0-9]+\\.datastream\\.([0-9]+)\\..*?");
 
-        String[] arrDataStreams = propertyConfiguration.getStringArray("job." + directorJobId + ".datastream");
-        for(int i = 0; i < arrDataStreams.length; i++) {
-            DataStream ds = new DataStream(this);
-            ds  .setDataStreamId(Integer.valueOf(arrDataStreams[i]))
-                .setJobId(directorJobId);
-            dataStreams.add(ds);
+        Iterator<String> keys = propertyConfiguration.getKeys(basePath);
+        while(keys.hasNext()) {
+            String key = keys.next();
+            Matcher matcher = pattern.matcher(key);
+            if (matcher.find()) {
+                datastreamKeys.add(matcher.group(1));
+            }
         }
 
+        for(String key : datastreamKeys) {
+            DataStream dataStream = new DataStream(this);
+            Iterator<String> streamInfo = propertyConfiguration.getKeys(basePath + "." + key);
+            while(streamInfo.hasNext()) {
+                String storeKey = streamInfo.next().replace(basePath + "." + key + ".", "");
+                dataStream
+                        .setDataStreamId(Integer.valueOf(key))
+                        .getProperties().put(storeKey, propertyConfiguration.getString(basePath + "." + key + "." + storeKey));
+            }
+            dataStreams.add(dataStream);
+        }
         return dataStreams;
     }
 

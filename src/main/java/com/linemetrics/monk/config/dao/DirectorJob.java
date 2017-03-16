@@ -1,12 +1,10 @@
 package com.linemetrics.monk.config.dao;
 
 import com.linemetrics.monk.config.ISystemConfigStore;
-import com.linemetrics.monk.config.sqlite.SystemConfigStore;
 import org.joda.time.Period;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
-import java.util.Date;
 import java.util.TimeZone;
 
 public class DirectorJob {

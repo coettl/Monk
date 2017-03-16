@@ -1,6 +1,6 @@
 package com.linemetrics.monk.director;
 
-import com.linemetrics.monk.config.dao.*;
+import com.linemetrics.monk.config.dao.DirectorJob;
 import org.quartz.*;
 
 
