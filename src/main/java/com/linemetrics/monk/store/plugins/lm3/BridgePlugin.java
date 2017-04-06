@@ -1,5 +1,6 @@
 package com.linemetrics.monk.store.plugins.lm3;
 
+import com.linemetrics.monk.config.dao.DataStream;
 import com.linemetrics.monk.dao.DataItem;
 import com.linemetrics.monk.director.RunnerContext;
 import com.linemetrics.monk.helper.JsonParser;
@@ -18,6 +19,12 @@ import java.util.List;
 import java.util.Map;
 
 public class BridgePlugin implements IStore {
+
+
+    @Override
+    public boolean initialize(RunnerContext ctx, JSONObject settings, Map<String, String> metaInfos, Map<Integer, Map<String, String>> dataStreamMetaInfos, List<DataStream> ds) {
+        return false;
+    }
 
     @Override
     public boolean store(RunnerContext ctx,
