@@ -18,8 +18,6 @@ public class PrefilledPlugin implements IStore {
 
     private static final Logger logger = LoggerFactory.getLogger(PrefilledPlugin.class);
 
-    private Map<String, FileCache> checkedFiles = new HashMap<>();
-
     @Override
     public boolean initialize(RunnerContext ctx, JSONObject settings, final Map<String, String> metaInfos, final Map<Integer, Map<String, String>> dataStreamMetaInfos, List<DataStream> ds) {
         String numberLocale =
@@ -54,6 +52,8 @@ public class PrefilledPlugin implements IStore {
                 settings.containsKey("csv_line_separator")
                         ? (String)settings.get("csv_line_separator") : System.lineSeparator();
         lineSeparator = lineSeparator.replaceAll("<CR>", "\r").replaceAll("<LF>", "\n");
+
+        Map<String, FileCache> checkedFiles = new HashMap<>();
 
         for(final DataStream stream : ds){
 
@@ -143,6 +143,8 @@ public class PrefilledPlugin implements IStore {
                 ? (String)settings.get("csv_line_separator") : System.lineSeparator();
         lineSeparator = lineSeparator.replaceAll("<CR>", "\r").replaceAll("<LF>", "\n");
 
+        Map<String, FileCache> checkedFiles = new HashMap<>();
+
         for(final Map.Entry<Integer, List<DataItem>> dataStream : items.entrySet()) {
 
             Map<String, String> mi = new HashMap<String, String>() {{
@@ -189,8 +191,10 @@ public class PrefilledPlugin implements IStore {
         }
 
         for(Map.Entry<String, FileCache> file : checkedFiles.entrySet()) {
-            File fold=new File(file.getKey());
-            if(fold.exists()) fold.delete();
+            File fold = new File(file.getKey());
+            if(fold.exists()){
+                fold.delete();
+            }
 
             try (PrintWriter out =
                      new PrintWriter(
