@@ -98,8 +98,8 @@ public class BridgePlugin implements IStore {
                 restElements.add(new HashMap(){{
                     put("ts", item.getTimestamp());
                     put("val", item.getValue());
-                    put("min", item.getValue());
-                    put("max", item.getValue());
+                    put("min", item.getMin() != null ? item.getMin() : item.getValue());
+                    put("max", item.getMax() != null ? item.getMax() : item.getValue());
                 }});
 
                 itemCnt++;
