@@ -1,5 +1,6 @@
 package com.linemetrics.monk.store.plugins.mail;
 
+import com.linemetrics.monk.config.dao.DataStream;
 import com.linemetrics.monk.dao.DataItem;
 import com.linemetrics.monk.director.RunnerContext;
 import com.linemetrics.monk.helper.TemplateParser;
@@ -31,6 +32,10 @@ public class MailPlugin implements IStore {
 
     private static final Logger logger = LoggerFactory.getLogger(MailPlugin.class);
 
+    @Override
+    public boolean initialize(RunnerContext ctx, JSONObject settings, Map<String, String> metaInfos, Map<Integer, Map<String, String>> dataStreamMetaInfos, List<DataStream> ds) {
+        return false;
+    }
 
     @Override
     public boolean store(RunnerContext ctx, JSONObject settings, Map<String, String> metaInfos, Map<Integer, Map<String, String>> dataStreamMetaInfos, Map<Integer, List<DataItem>> items) throws ProcessorException {

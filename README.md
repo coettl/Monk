@@ -1,4 +1,4 @@
-``````****``````# LineMetrics Offline Sync Tool - Data Monk
+# LineMetrics Offline Sync Tool - Data Monk
 
     Version:           1.6
     Datum:             10.05.2017
@@ -7,7 +7,7 @@
 Data Monk ist ein Tool von LineMetrics, dass OpenSource zur Verfügung gestellt wird und es Kunden erlaubt,
 Daten aus der LineMetrics Cloud in ein kundenspezifisches lokales Format zu synchronisieren.
 
-## Versionänderung von 1.5.x zu 1.6
+## Versionsänderung von 1.5.x auf 1.6
 **Wichtig:** Da die neue Version (1.6) nun auch die neuere LM3 Api unterstützt muss die Konfiguration hinsichtlich der Datastreams geändert werden. 
 Anstatt wie bisher (<1.6) muss auch der Datastream Eintrag in der Konfiguration mit einem Key versehen werden, ähnlich wie es bei den Jobs ist. 
 Diese Änderung bezieht sich auch auf die Meta-Infos.
