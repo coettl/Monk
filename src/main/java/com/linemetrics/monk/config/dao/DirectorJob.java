@@ -1,5 +1,6 @@
 package com.linemetrics.monk.config.dao;
 
+import com.linemetrics.monk.config.ConfigException;
 import com.linemetrics.monk.config.ISystemConfigStore;
 import org.joda.time.Period;
 import org.json.simple.JSONObject;
@@ -62,6 +63,19 @@ public class DirectorJob {
 
     public long getDurationInMillis() {
         return new Period(getDuration()).toStandardDuration().getMillis();
+    }
+
+    public String getDurationSlice() {
+        return this.properties.containsKey("duration_slice")
+            ? (String)this.properties.get("duration_slice")
+            : null;
+    }
+
+    public long getDurationSliceInMillis() throws ConfigException {
+        if(getDurationSlice() == null) {
+            throw new ConfigException("Duration Slice is not defined for Job-ID: " + this.id);
+        }
+        return new Period(getDurationSlice()).toStandardDuration().getMillis();
     }
 
     public String getProperties() {
