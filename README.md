@@ -1,12 +1,27 @@
 ``````****``````# LineMetrics Offline Sync Tool - Data Monk
 
-    Version:           1.5
-    Datum:             10.01.2017
+    Version:           1.6
+    Datum:             10.05.2017
     Verantwortlicher:  Thomas Pillmayr <t.pillmayr@linemetrics.com>
 
 Data Monk ist ein Tool von LineMetrics, dass OpenSource zur Verfügung gestellt wird und es Kunden erlaubt,
 Daten aus der LineMetrics Cloud in ein kundenspezifisches lokales Format zu synchronisieren.
 
+## Versionänderung von 1.5.x zu 1.6
+**Wichtig:** Da die neue Version (1.6) nun auch die neuere LM3 Api unterstützt muss die Konfiguration hinsichtlich der Datastreams geändert werden. 
+Anstatt wie bisher (<1.6) muss auch der Datastream Eintrag in der Konfiguration mit einem Key versehen werden, ähnlich wie es bei den Jobs ist. 
+Diese Änderung bezieht sich auch auf die Meta-Infos.
+
+Version < 1.6
+
+    job.1.datastream=8782
+    meta.datastream.8782.customer_id=1234
+
+Version 1.6+
+
+    job.1.datastream.1.id=8782
+    meta.datastream.1.customer_id=1234
+    
 ## Funktionalität
 
 * Frei definierbare zeitliche Synchronisierung (ähnlich Cronjobs)
@@ -272,10 +287,10 @@ besser mit anderen Stammdaten verknüpfen zu können.
     meta.(job oder datastream).[ID].[KEY]=[VALUE]
 
     meta.job.1.data_type=Energy Consumption
-    meta.datastream.8782.customer_id=1234
+    meta.datastream.1.customer_id=1234
 
-Hier wird zuerst eine Meta Information für den Synchronisierungsvorgang mit der ID 1 angelegt und dann ein
-Info für den Datenstrom 8782. Meta Informationen können bei den Templates in Form von Platzhaltern verwendet werden.
+Hier wird zuerst eine Meta Information für den Synchronisierungsvorgang mit der ID 1 angelegt und dann eine
+Info für den Datenstrom mit dem Key 1 (bezieht sich auf `job.1.datastream.1.id=123`). Meta Informationen können bei den Templates in Form von Platzhaltern verwendet werden.
 Platzhalter werden im nächsten Abschnitt behandelt.
 
 ## Platzhalter
