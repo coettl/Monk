@@ -120,12 +120,24 @@ Aus den Einstellungen lässt sich interpretieren, dass Montag-Samstag zwischen 8
 jeder vollen Stunde die vergangene Stunde als Minuten Datenpunkte abgeholt wird.
 
 #### Welche Daten sollen synchronisiert werden?
+Hier muss zwischen LM2 (ApiV1) und LM3 (ApiV2) unterschieden werden. Sollen Daten von LM2 synchronisiert werden, muss die Objekt-ID (`id`) als eindeutiger Identifier angegeben werden.
 
+    #LM2
     job.1.datastream.1.id=123
     job.1.datastream.2.id=456
 
 Pro Zeile kann ein Datenstrom zum Sync Vorgang hinzugefügt werden. Die für das Konto verfügbaren Datenströme können über
 die [Datenstrom Übersichtsseite](https://app.linemetrics.com/datastream/list) eruiert werden.
+
+Wird jedoch LM3 verwendet muss als Identifier der Customkey (`customkey`) und Alias (`alias`) des zu lesenden Datenstroms angegeben werden.
+
+    #LM3
+    job.1.datastream.1.customkey=mycustomkey
+    job.1.datastream.1.alias=alias1
+    job.1.datastream.2.customkey=mycustomkey
+    job.1.datastream.2.alias=alias2
+
+Customkey und Alias können sie in ihrer LineMetrics Cloud beim jeweiligen Messpunkt am oberen rechten Bildschirmrand unter "API" finden, bzw. unter "Messpunkt bearbeiten/Entwickler" bearbeiten.
 
 #### Daten-Verarbeitung
 
