@@ -1,16 +1,15 @@
 package com.linemetrics.monk.director;
 
 
-
 import com.linemetrics.monk.config.dao.DirectorJob;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 
-import static org.quartz.SimpleScheduleBuilder.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 
 public class Director {
 
@@ -35,9 +34,9 @@ public class Director {
             for(DirectorJob directorJob : Director.jobs.values()) {
 
                 JobDetail job = JobBuilder.newJob(DirectorInitiator.class)
-                    .withIdentity("job_" + directorJob.getId(), "directorjob")
-                    .usingJobData("job", directorJob.getId())
-                    .build();
+                        .withIdentity("job_" + directorJob.getId(), "directorjob")
+                        .usingJobData("job", directorJob.getId())
+                        .build();
 
                 Trigger trigger;
                 if(directorJob.getSchedulerMask().equalsIgnoreCase("NOW")) {

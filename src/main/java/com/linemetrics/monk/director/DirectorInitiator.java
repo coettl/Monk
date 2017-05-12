@@ -1,7 +1,7 @@
 package com.linemetrics.monk.director;
 
+import com.linemetrics.monk.config.dao.DirectorJob;
 import com.linemetrics.monk.config.ConfigException;
-import com.linemetrics.monk.config.dao.*;
 import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -103,7 +103,10 @@ public class TemplateParser {
     }
 
     private static String formatDate(Long ts, String format, String locale) {
-        return dateFormat(format, locale).format(new Date(ts));
+        if(ts != null){
+            return dateFormat(format, locale).format(new Date(ts));
+        }
+        return null;
     }
 
     private static SimpleDateFormat dateFormat(String format, String timeZone) {

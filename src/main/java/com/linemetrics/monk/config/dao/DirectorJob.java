@@ -6,7 +6,6 @@ import org.joda.time.Period;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
-import java.util.Date;
 import java.util.TimeZone;
 
 public class DirectorJob {

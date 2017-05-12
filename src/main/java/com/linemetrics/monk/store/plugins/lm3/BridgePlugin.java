@@ -1,15 +1,13 @@
 package com.linemetrics.monk.store.plugins.lm3;
 
+import com.linemetrics.monk.config.dao.DataStream;
 import com.linemetrics.monk.dao.DataItem;
 import com.linemetrics.monk.director.RunnerContext;
 import com.linemetrics.monk.helper.JsonParser;
-import com.linemetrics.monk.helper.TemplateParser;
 import com.linemetrics.monk.processor.ProcessorException;
 import com.linemetrics.monk.store.IStore;
 import org.json.simple.JSONObject;
 
-import java.io.*;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
@@ -18,6 +16,12 @@ import java.util.List;
 import java.util.Map;
 
 public class BridgePlugin implements IStore {
+
+
+    @Override
+    public boolean initialize(RunnerContext ctx, JSONObject settings, Map<String, String> metaInfos, Map<Integer, Map<String, String>> dataStreamMetaInfos, List<DataStream> ds) {
+        return false;
+    }
 
     @Override
     public boolean store(RunnerContext ctx,

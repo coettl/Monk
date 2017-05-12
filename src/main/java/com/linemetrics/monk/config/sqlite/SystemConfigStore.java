@@ -3,10 +3,13 @@ package com.linemetrics.monk.config.sqlite;
 import com.linemetrics.monk.config.ConfigException;
 import com.linemetrics.monk.config.ISystemConfigStore;
 import com.linemetrics.monk.config.dao.*;
-import org.joda.time.Duration;
-import org.joda.time.Period;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,9 +23,10 @@ public class SystemConfigStore
     public static final String FIELD_JOB_ID         = "JOB_ID";
     public static final String FIELD_JOB_SETTINGS   = "SETTINGS";
 
-    public static final String TABLE_DATASTREAMS        = "DATASTREAMS";
-    public static final String FIELD_DS_JOB_ID          = "JOB_ID";
-    public static final String FIELD_DS_DATASTREAM_ID   = "DATASTREAM_ID";
+    public static final String TABLE_DATASTREAMS                = "DATASTREAMS";
+    public static final String FIELD_DS_JOB_ID                  = "JOB_ID";
+    public static final String FIELD_DS_DATASTREAM_ID           = "DATASTREAM_ID";
+    public static final String FIELD_DS_DATASTREAM_PROPERTIES   = "DATASTREAM_PROPERTIES";
 
     public static final String TABLE_METAINFO       = "METAINFO";
     public static final String FIELD_META_TYPE      = "META_TYPE";
@@ -67,7 +71,8 @@ public class SystemConfigStore
             stmt = getConnection().createStatement();
             sql = "CREATE TABLE IF NOT EXISTS " + TABLE_DATASTREAMS + " " +
                 "(" + FIELD_DS_JOB_ID + " INTEGER," +
-                " " + FIELD_DS_DATASTREAM_ID + " INTEGER)";
+                "(" + FIELD_DS_DATASTREAM_ID + " INTEGER," +
+                " " + FIELD_DS_DATASTREAM_PROPERTIES + " VARCHAR(64 )";
             stmt.executeUpdate(sql);
             stmt.close();
 
@@ -239,6 +244,11 @@ public class SystemConfigStore
                 DataStream ds = new DataStream(this);
                 ds  .setDataStreamId(rs.getInt(FIELD_DS_DATASTREAM_ID))
                     .setJobId(rs.getInt(FIELD_DS_JOB_ID));
+
+                if(rs.getString(FIELD_DS_DATASTREAM_PROPERTIES) != null){
+                    ds.setProperties((JSONObject) (JSONValue.parse(rs.getString(FIELD_DS_DATASTREAM_PROPERTIES))));
+                }
+
                 dataStreams.add(ds);
             }
             rs.close();
@@ -263,9 +273,11 @@ public class SystemConfigStore
 
             PreparedStatement stmt = getConnection().prepareStatement("INSERT INTO " + TABLE_DATASTREAMS + " (" +
                 " " + FIELD_DS_DATASTREAM_ID + ", " +
-                " " + FIELD_DS_JOB_ID + ") VALUES (?, ?);");
+                " " + FIELD_DS_JOB_ID + ", " +
+                " " + FIELD_DS_DATASTREAM_PROPERTIES + ") VALUES (?, ?, ?);");
             stmt.setInt(1, dataStream.getDataStreamId());
             stmt.setInt(2, dataStream.getJobId());
+            stmt.setString(3, dataStream.getPropertiesAsString());
             stmt.executeUpdate();
 
             stmt.close();

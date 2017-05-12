@@ -1,12 +1,27 @@
-``````****``````# LineMetrics Offline Sync Tool - Data Monk
+# LineMetrics Offline Sync Tool - Data Monk
 
-    Version:           1.5
-    Datum:             10.01.2017
+    Version:           1.6
+    Datum:             10.05.2017
     Verantwortlicher:  Thomas Pillmayr <t.pillmayr@linemetrics.com>
 
 Data Monk ist ein Tool von LineMetrics, dass OpenSource zur Verfügung gestellt wird und es Kunden erlaubt,
 Daten aus der LineMetrics Cloud in ein kundenspezifisches lokales Format zu synchronisieren.
 
+## Versionsänderung von 1.5.x auf 1.6
+**Wichtig:** Da die neue Version (1.6) nun auch die neuere LM3 Api unterstützt muss die Konfiguration hinsichtlich der Datastreams geändert werden. 
+Anstatt wie bisher (<1.6) muss auch der Datastream Eintrag in der Konfiguration mit einem Key versehen werden, ähnlich wie es bei den Jobs ist. 
+Diese Änderung bezieht sich auch auf die Meta-Infos.
+
+Version < 1.6
+
+    job.1.datastream=8782
+    meta.datastream.8782.customer_id=1234
+
+Version 1.6+
+
+    job.1.datastream.1.id=8782
+    meta.datastream.1.customer_id=1234
+    
 ## Funktionalität
 
 * Frei definierbare zeitliche Synchronisierung (ähnlich Cronjobs)
@@ -40,14 +55,25 @@ anzubieten. Aktuell muss die Konfiguration in einem Konfigurationsfile `system.p
 
 ### API Zugangsdaten
 
+    #Version 1 API
     api.endpoint=http://bapi.linemetrics.com:8002
     api.hash=ABCDEFG...
-
+    
+    #Version 2 API
+    api.client_id=ABCD
+    api.client_secret=ABCD
+    
+    #API version
+    api.version=com.linemetrics.monk.apiv2
+    
 `api.endpoint` definiert den API Server Endpunkt und sollte eigentlich immer gleich sein.
 
 `api.hash` ist der eigentliche API Zugang und verifiziert den Zugriff über die API. Den Hash findest du im
 [LineMetrics Cloud Device Manager](https://app.linemetrics.com/deviceManager/api), wenn du auf deine konfigurierte
-API Schnittstelle und dann auf den Button "Zugangsdaten" klickst.
+API Schnittstelle und dann auf den Button "Zugangsdaten" klickst. 
+
+Wird Version 2 der API verwendet muss anstatt `api.hash` der Wert für `api.client_id` und `api.client_secret` angegeben werden.
+`api.version` gibt an welche Version der API verwendet werden soll. Mögliche Werte sind `com.linemetrics.monk.apiv2` und `com.linemetrics.monk.api`.
 
 ### Synchronisierungseinstellungen
 
@@ -95,8 +121,8 @@ jeder vollen Stunde die vergangene Stunde als Minuten Datenpunkte abgeholt wird.
 
 #### Welche Daten sollen synchronisiert werden?
 
-    job.1.datastream=123
-    job.1.datastream=456
+    job.1.datastream.1.id=123
+    job.1.datastream.2.id=456
 
 Pro Zeile kann ein Datenstrom zum Sync Vorgang hinzugefügt werden. Die für das Konto verfügbaren Datenströme können über
 die [Datenstrom Übersichtsseite](https://app.linemetrics.com/datastream/list) eruiert werden.
@@ -184,6 +210,42 @@ Das Attribut `csv_empty_line_template` legt das Format fest, wie die leeren Date
 für den gesamten Zeitraum geschrieben werden, aussehen sollen. Diese Zeilen werden später durch die tatsächlichen Werte bzw.
 durch die Konfiguration von `csv_line_template` ersetzt.
 
+#### Daten-Weiterleitung an Mail-Adresse
+
+Das Mail Plugin ermöglicht das Versenden der Daten als CSV Datei an eine oder mehrere Email-Adressen.
+
+Beispiel Konfiguration für das Mail Plugin:
+
+	job.1.store.1.type=com.linemetrics.monk.store.plugins.mail.MailPlugin
+	job.1.store.1.csv_number_locale=de_AT
+	job.1.store.1.csv_file_template=${job.start:yyyy-MM-dd}.csv
+	job.1.store.1.csv_header_template=Das ist der Header meiner CSV mit einer Meta Info ${meta.clientID}
+	job.1.store.1.csv_line_template=${item.start:yyyy-MM-dd HH:mm:ss};${item.end:yyyy-MM-dd HH:mm:ss};${item.value:0.00};${meta.customer_id}
+	job.1.store.1.csv_line_separator=<LF>
+	job.1.store.1.mail_receiver=empfaenger@test.com
+	job.1.store.1.mail_subject=Linemetrics CSV Export
+	job.1.store.1.mail_attachment=true
+	job.1.store.1.mail_smtp_host=smtp.test.com
+	job.1.store.1.mail_smtp_sender=sender@test.com
+	job.1.store.1.mail_smtp_user=username
+	job.1.store.1.mail_smtp_password=password
+	job.1.store.1.mail_smtp_port=465
+	job.1.store.1.mail_smtp_tlsenabled=true
+
+Neben den Attributen des CSV Plugin sind noch folgende weitere Attribute zu konfigurieren:
+
+Das Attribut `mail_receiver` legt fest an welche Email-Adressen die Daten gesendet werden sollen. 
+Mit Beistrich getrennt können auch mehrere Email-Adressen angegeben werden.
+
+Das Attribut `mail_subject` legt den Betreff fest.
+
+Das Attribut `mail_attachment` kann die Werte `true` und `false` besitzen und entscheidet darüber ob die Daten als CSV-Datei im Anhang versendet werden sollen (=true) oder direkt als Text in die Email geschrieben werden sollen.
+
+Das Attribut `mail_smtp_host` gibt den SMTP-Host an, über den die Email verschickt werden soll. 
+`mail_smtp_sender` gibt die Sender-Email Adresse an. 
+`mail_smtp_user` und `mail_smtp_password` konfigurieren den User der am SMTP-Host über die nötigen Berechtigungen verfügt. 
+Zusätzlich muss mit `mail_smtp_port` noch der Port des SMTP-Host angegeben werden und ob der SMTP-Host TLS verwenden soll (`mail_smtp_tlsenabled`).
+
 #### Daten-Weiterleitung an LineMetrics v3
 
 Das Bridge Plugin ermöglicht das Weiterleiten von Daten aus der v2 Umgebung in die v3 Umgebung. Wichtig hier ist, dass zuvor
@@ -225,10 +287,10 @@ besser mit anderen Stammdaten verknüpfen zu können.
     meta.(job oder datastream).[ID].[KEY]=[VALUE]
 
     meta.job.1.data_type=Energy Consumption
-    meta.datastream.8782.customer_id=1234
+    meta.datastream.1.customer_id=1234
 
-Hier wird zuerst eine Meta Information für den Synchronisierungsvorgang mit der ID 1 angelegt und dann ein
-Info für den Datenstrom 8782. Meta Informationen können bei den Templates in Form von Platzhaltern verwendet werden.
+Hier wird zuerst eine Meta Information für den Synchronisierungsvorgang mit der ID 1 angelegt und dann eine
+Info für den Datenstrom mit dem Key 1 (bezieht sich auf `job.1.datastream.1.id=123`). Meta Informationen können bei den Templates in Form von Platzhaltern verwendet werden.
 Platzhalter werden im nächsten Abschnitt behandelt.
 
 ## Platzhalter
@@ -350,14 +412,15 @@ Definition laut ISO8601:
 
     api.endpoint=http://bapi.linemetrics.com:8002
     api.hash=ABCDEFG...
+    api.version=com.linemetrics.monk.api
 
     job.1.info.scheduler_mask=0 0 8-17 ? * MON-SAT
     job.1.info.timezone=Europe/Vienna
     job.1.info.batch_size=PT1m
     job.1.info.duration=PT1H
 
-    job.1.datastream=123
-    job.1.datastream=456
+    job.1.datastream.1.id=123
+    job.1.datastream.2.id=456
 
     job.1.processor.type=com.linemetrics.monk.processor.plugins.compress.CompressorPlugin
     job.1.processor.compression_mode=SUM
@@ -383,20 +446,21 @@ Definition laut ISO8601:
     activated_jobs=1
 
     meta.job.1.data_type=Energy Consumption
-    meta.datastream.8782.customer_id=1234
+    meta.datastream.1.customer_id=1234
     
 ### Periodisches Übertragen an REST Endpunkt
 
     api.endpoint=http://bapi.linemetrics.com:8002
     api.hash=ABCDEFG...
+    api.version=com.linemetrics.monk.api
 
     job.1.info.scheduler_mask=0 0 8-17 ? * MON-SAT
     job.1.info.timezone=Europe/Vienna
     job.1.info.batch_size=PT1m
     job.1.info.duration=PT1H
 
-    job.1.datastream=123
-    job.1.datastream=456
+    job.1.datastream.1.id=123
+    job.1.datastream.2.id=456
 
     job.1.store.1.type=com.linemetrics.monk.store.plugins.lm3.BridgePlugin
     job.1.store.1.connection_url=https://lm3api.linemetrics.com/v2/data/
@@ -406,12 +470,93 @@ Definition laut ISO8601:
     job.1.store.1.items_per_request=1024
 
     activated_jobs=1
-    meta.datastream.15459.custom_key=Maschine
-    meta.datastream.15459.alias=Messpunkt1
+    meta.datastream.1.custom_key=Maschine
+    meta.datastream.2.alias=Messpunkt1
 
-    meta.datastream.15457.custom_key=Maschine
-    meta.datastream.15457.alias=Messpunkt2
+    meta.datastream.1.custom_key=Maschine
+    meta.datastream.2.alias=Messpunkt2
     
+### Periodisches Versenden an Mail-Adresse   
+  
+    api.endpoint=http://bapi.linemetrics.com:8002
+    api.hash=ABCDEFG...
+    api.version=com.linemetrics.monk.api
+
+    job.1.info.scheduler_mask=0 0 8-17 ? * MON-SAT
+    job.1.info.timezone=Europe/Vienna
+    job.1.info.batch_size=PT1m
+    job.1.info.duration=PT1H
+
+    job.1.datastream.1.id=123
+    job.1.datastream.2.id=456
+    
+    job.1.store.1.type=com.linemetrics.monk.store.plugins.mail.MailPlugin
+    job.1.store.1.csv_number_locale=de_AT
+    job.1.store.1.csv_file_template=${job.start:yyyy-MM-dd}.csv
+    job.1.store.1.csv_header_template=Das ist der Header meiner CSV mit einer Meta Info ${meta.clientID}
+    job.1.store.1.csv_line_template=${item.start:yyyy-MM-dd HH:mm:ss};${item.end:yyyy-MM-dd HH:mm:ss};${item.value:0.00};${meta.customer_id}
+    job.1.store.1.csv_line_separator=<LF>
+    job.1.store.1.mail_receiver=empfaenger@test.com
+    job.1.store.1.mail_subject=Linemetrics CSV Export
+    job.1.store.1.mail_attachment=true
+    job.1.store.1.mail_smtp_host=smtp.test.com
+    job.1.store.1.mail_smtp_sender=sender@test.com
+    job.1.store.1.mail_smtp_user=username
+    job.1.store.1.mail_smtp_password=password
+    job.1.store.1.mail_smtp_port=465
+    job.1.store.1.mail_smtp_tlsenabled=true
+    
+    activated_jobs=1
+    meta.datastream.1.custom_key=Maschine
+    meta.datastream.2.alias=Messpunkt1
+
+    meta.datastream.1.custom_key=Maschine
+    meta.datastream.2.alias=Messpunkt2
+
+### Periodisches Exportieren in Dateien unter Verwendung der APIv2
+
+    api.client_id=ABCD...
+    api.client_secret=ABCDEFG...
+    api.version=com.linemetrics.monk.apiv2
+    
+    job.1.info.scheduler_mask=0 0 8-17 ? * MON-SAT
+    job.1.info.timezone=Europe/Vienna
+    job.1.info.batch_size=PT1m
+    job.1.info.duration=PT1H
+
+    job.1.datastream.1.customkey=123
+    job.1.datastream.1.alias=123
+    
+    job.1.datastream.2.customkey=123
+    job.1.datastream.2.alias=123
+
+    job.1.processor.type=com.linemetrics.monk.processor.plugins.compress.CompressorPlugin
+    job.1.processor.compression_mode=SUM
+    job.1.processor.compression_size=PT15M
+
+    job.1.store.1.type=com.linemetrics.monk.store.plugins.csv.StorePlugin
+    job.1.store.1.csv_number_locale=de_AT
+    job.1.store.1.csv_file_path=exports/
+    job.1.store.1.csv_file_template=${job.start:YYYY-mm-dd}.csv
+    job.1.store.1.csv_header_template=Das ist der Header meiner CSV
+    job.1.store.1.csv_line_template=${item.start:YYYY-mm-dd HH:mm:ss};${item.end:YYYY-mm-dd HH:mm:ss};${item.value:0.00}
+    
+    job.1.store.2.type=com.linemetrics.monk.store.plugins.csv.PrefilledPlugin
+    job.1.store.2.csv_time_scope=P1D
+    job.1.store.2.csv_time_slice=PT15M
+    job.1.store.2.csv_number_locale=de_AT
+    job.1.store.2.csv_file_path=exports/
+    job.1.store.2.csv_file_template=${job.start:YYYY-mm-dd}.csv
+    job.1.store.2.csv_header_template=Das ist der Header meiner CSV
+    job.1.store.2.csv_empty_line_template=${item.start:YYYY-mm-dd HH:mm:ss};${item.end:YYYY-mm-dd HH:mm:ss};
+    job.1.store.2.csv_line_template=${item.start:YYYY-mm-dd HH:mm:ss};${item.end:YYYY-mm-dd HH:mm:ss};${item.value:0.00}
+
+    activated_jobs=1
+
+    meta.job.1.data_type=Energy Consumption
+    meta.datastream.1.customer_id=1234
+    meta.datastream.2.customer_id=5678
+
 ## Starten / Ausführen des Programms
 
 Nach erfolgreicher Konfiguration kann das Programm über die `start.cmd` Datei gestartet werden. Sollte das Programm nicht ohnehin über das Terminal gestartet werden, öffnet sich beim Aufruf der Datei ein Terminal Fenster. Solange das Fenster **nicht geschlossen** wird, wird das Programm ausgeführt. Das Programm beinhaltet einen Scheduler, der je nach Konfiguration die Sync Jobs automatisch und periodisch startet. Dieser Scheduler verhindert es, dass das Programm terminiert. Wird das Programm trotzdem unerwartet beendet, ist das ein Hinweis auf einen Fehler. Bitte senden Sie in diesem Fall den Inhalt der Datei `service.log` an [ticket@linemetrics.com](mailto:ticket@linemetrics.com "Monk Tool").

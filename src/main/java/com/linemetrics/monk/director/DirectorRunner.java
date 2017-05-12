@@ -75,18 +75,26 @@ public class DirectorRunner {
 
                     Map<Integer, List<DataItem>> data = new HashMap<>();
 
+                    //set job properties to api client instance
+                    ApiManager.getClient().setJobProperties(job.getProperties());
+
+                    //initialize datastores
+                    for(DataStore store : dataStores) {
+                        StoreFactory.getStore(store.getStoreType()).initialize(ctx, store.getPropertiesObject(), jobMetaInfo, dataStreamMetaInfo, dataStreams);
+                    }
+
                     for(DataStream ds : dataStreams) {
 
                         logger.debug(
                             String.format(
-                                logPrefix + "Query DataStream %d for TimeRange %d-%d, TimeZone %s, TDB %s",
-                                ds.getDataStreamId(),
+                                logPrefix + "Query DataStream %s for TimeRange %d-%d, TimeZone %s, TDB %s",
+                                ds.toString(),
                                 ctx.getTimeFrom(), ctx.getTimeTo(), job.getTimeZone(), TDB.fromMilliseconds(ctx.getBatchSize()).name()));
 
                         data.put(
                             ds.getDataStreamId(),
                             ApiManager.getClient().getRangeOptimized(
-                                ds.getDataStreamId(),
+                                ds.getPropertiesAsString(),
                                 ctx.getTimeFrom(),
                                 ctx.getTimeTo(),
                                 TDB.fromMilliseconds(ctx.getBatchSize()),
@@ -113,9 +121,13 @@ public class DirectorRunner {
                         dataItemData.setValue(dataItems);
                     }
 
+                    //allocate memory
+                    long total = Runtime.getRuntime().totalMemory();
+                    long used = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+                    logger.info(String.format("Used memory, Total: %s mb, Used: %s mb", (total / (1024*1024)), (used / (1024*1024))));
+
                     for(DataStore store : dataStores) {
                         IStore proc = StoreFactory.getStore(store.getStoreType());
-
                         logger.debug(logPrefix + "Do start store of data with" + store.getStoreType());
 
                         Iterator<Map.Entry<Integer, List<DataItem>>> iterator = data.entrySet().iterator();

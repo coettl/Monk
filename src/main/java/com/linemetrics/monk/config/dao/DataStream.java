@@ -1,13 +1,16 @@
 package com.linemetrics.monk.config.dao;
 
 import com.linemetrics.monk.config.ISystemConfigStore;
+import org.json.simple.JSONObject;
 
 public class DataStream {
 
     ISystemConfigStore store;
 
-    int jobId;
-    int dataStreamId;
+    private int jobId;
+    private int dataStreamId;
+
+    private JSONObject properties;
 
     public DataStream(ISystemConfigStore store) {
         this.store = store;
@@ -31,6 +34,22 @@ public class DataStream {
         return this;
     }
 
+    public JSONObject getProperties() {
+        if(this.properties == null){
+            this.properties = new JSONObject();
+        }
+        return properties;
+    }
+
+    public String getPropertiesAsString(){
+        return getProperties().toJSONString();
+    }
+
+    public DataStream setProperties(JSONObject properties) {
+        this.properties = properties;
+        return this;
+    }
+
     public boolean save() {
         try {
             this.store.createDataStream(this);
@@ -44,7 +63,7 @@ public class DataStream {
     public String toString() {
         return "DataStream{" +
             "jobId=" + jobId +
-            ", dataStreamId=" + dataStreamId +
+            ", id=" + dataStreamId +
             '}';
     }
 }

@@ -1,5 +1,6 @@
 package com.linemetrics.monk.store.plugins.csv;
 
+import com.linemetrics.monk.config.dao.DataStream;
 import com.linemetrics.monk.dao.DataItem;
 import com.linemetrics.monk.director.RunnerContext;
 import com.linemetrics.monk.helper.TemplateParser;
@@ -11,11 +12,90 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class PrefilledPlugin implements IStore {
 
     private static final Logger logger = LoggerFactory.getLogger(PrefilledPlugin.class);
+
+    @Override
+    public boolean initialize(RunnerContext ctx, JSONObject settings, final Map<String, String> metaInfos, final Map<Integer, Map<String, String>> dataStreamMetaInfos, List<DataStream> ds) {
+        String numberLocale =
+                settings.containsKey("csv_number_locale")
+                        ? (String)settings.get("csv_number_locale") : "de_AT";
+
+        String headerTemplate =
+                settings.containsKey("csv_header_template")
+                        ? (String)settings.get("csv_header_template") : null;
+
+        String emptyLineTemplate =
+                settings.containsKey("csv_empty_line_template")
+                        ? (String)settings.get("csv_empty_line_template") : null;
+
+        String fileTemplate =
+                settings.containsKey("csv_file_template")
+                        ? (String)settings.get("csv_file_template") : null;
+
+        String filePath =
+                settings.containsKey("csv_file_path")
+                        ? (String)settings.get("csv_file_path") : "./";
+
+        String timeScope =
+                settings.containsKey("csv_time_scope")
+                        ? (String)settings.get("csv_time_scope") : "PT1D";
+
+        String timeSlice =
+                settings.containsKey("csv_time_slice")
+                        ? (String)settings.get("csv_time_slice") : "PT1M";
+
+        String lineSeparator =
+                settings.containsKey("csv_line_separator")
+                        ? (String)settings.get("csv_line_separator") : System.lineSeparator();
+        lineSeparator = lineSeparator.replaceAll("<CR>", "\r").replaceAll("<LF>", "\n");
+
+        Map<String, FileCache> checkedFiles = new HashMap<>();
+
+        for(final DataStream stream : ds){
+
+            Map<String, String> mi = new HashMap<String, String>() {{
+                putAll(metaInfos);
+                putAll(dataStreamMetaInfos.get(stream.getDataStreamId()));
+            }};
+
+            try {
+                FileCache cache = getFileCache(
+                        checkedFiles, filePath, headerTemplate, timeScope, timeSlice,
+                        fileTemplate, emptyLineTemplate,
+                        numberLocale,  mi, ctx, null);
+
+                for(Map.Entry<String, FileCache> file : checkedFiles.entrySet()) {
+                    if(!file.getValue().fileExists){
+                        try (PrintWriter out =
+                                     new PrintWriter(
+                                             new BufferedWriter(
+                                                     new FileWriter(file.getKey(), false)
+                                             )
+                                     )) {
+
+                            for(String line : cache.lineCache) {
+                                out.print(line + lineSeparator);
+                            }
+
+                        } catch (IOException e) {
+                            throw new ProcessorException("Unable to store data to CSV: " + e.getMessage());
+                        }
+                    }
+                }
+            } catch(Exception e){
+                logger.error("Error storing csv file");
+                return false;
+            }
+        }
+        return true;
+    }
 
     @Override
     public boolean store(
@@ -114,9 +194,10 @@ public class PrefilledPlugin implements IStore {
         }
 
         for(Map.Entry<String, FileCache> file : checkedFiles.entrySet()) {
-
-            File fold=new File(file.getKey());
-            if(fold.exists()) fold.delete();
+            File fold = new File(file.getKey());
+            if(fold.exists()){
+                fold.delete();
+            }
 
             try (PrintWriter out =
                      new PrintWriter(

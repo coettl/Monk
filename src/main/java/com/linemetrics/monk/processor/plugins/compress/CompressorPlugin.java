@@ -66,6 +66,7 @@ public class CompressorPlugin implements IProcessor {
 //            System.out.println("Loop " + item);
 
             if(item.getTimestamp() > compressionEndTime) {
+
                 if(cnt != null && (compressionBatchItemCount == null || compressionBatchItemCount.longValue() == cnt)) {
                     DataItem newItem = createNewItem(startTime,compressionEndTime, min, max, cnt, sum, compressionMode);
                     System.err.println(newItem);
