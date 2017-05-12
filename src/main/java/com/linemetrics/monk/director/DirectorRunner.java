@@ -78,6 +78,11 @@ public class DirectorRunner {
                     //set job properties to api client instance
                     ApiManager.getClient().setJobProperties(job.getProperties());
 
+                    //initialize datastores
+                    for(DataStore store : dataStores) {
+                        StoreFactory.getStore(store.getStoreType()).initialize(ctx, store.getPropertiesObject(), jobMetaInfo, dataStreamMetaInfo, dataStreams);
+                    }
+
                     for(DataStream ds : dataStreams) {
 
                         logger.debug(
@@ -123,7 +128,6 @@ public class DirectorRunner {
 
                     for(DataStore store : dataStores) {
                         IStore proc = StoreFactory.getStore(store.getStoreType());
-
                         logger.debug(logPrefix + "Do start store of data with" + store.getStoreType());
 
                         Iterator<Map.Entry<Integer, List<DataItem>>> iterator = data.entrySet().iterator();
