@@ -167,6 +167,7 @@ Beispiel Konfiguration für das Prefilled Plugin
     job.1.store.2.csv_time_slice=PT15M
     job.1.store.2.csv_number_locale=de_AT
     job.1.store.2.csv_file_path=exports/
+    job.1.store.2.csv_file_template_scope=DAY
     job.1.store.2.csv_file_template=${job.start:YYYY-mm-dd}.csv
     job.1.store.2.csv_header_template=Das ist der Header meiner CSV
     job.1.store.2.csv_empty_line_template=${item.start:YYYY-mm-dd HH:mm:ss};${item.end:YYYY-mm-dd HH:mm:ss};
@@ -183,6 +184,9 @@ PT15M = 15 Minute
 Das Attribut `csv_empty_line_template` legt das Format fest, wie die leeren Datenpunkte, die beim Anlegen einer neuen Datei
 für den gesamten Zeitraum geschrieben werden, aussehen sollen. Diese Zeilen werden später durch die tatsächlichen Werte bzw.
 durch die Konfiguration von `csv_line_template` ersetzt.
+
+Das Attribut `csv_file_template_scope` ist optional und legt den Zeitraum fest für den die Zeilen im CSV File erstellt werden. Mögliche Werte sind HOUR, DAY, MONTH.
+Wird z.B. der Wert `DAY` verwendet, werden unter Beachtung der Time Slices Zeilen von 00:00-23:59 angelegt. 
 
 #### Daten-Weiterleitung an LineMetrics v3
 
@@ -375,6 +379,7 @@ Definition laut ISO8601:
     job.1.store.2.csv_time_slice=PT15M
     job.1.store.2.csv_number_locale=de_AT
     job.1.store.2.csv_file_path=exports/
+    job.1.store.2.csv_file_template_scope=DAY
     job.1.store.2.csv_file_template=${job.start:YYYY-mm-dd}.csv
     job.1.store.2.csv_header_template=Das ist der Header meiner CSV
     job.1.store.2.csv_empty_line_template=${item.start:YYYY-mm-dd HH:mm:ss};${item.end:YYYY-mm-dd HH:mm:ss};

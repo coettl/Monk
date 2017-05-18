@@ -48,6 +48,9 @@ public class PrefilledPlugin implements IStore {
                 settings.containsKey("csv_time_slice")
                         ? (String)settings.get("csv_time_slice") : "PT1M";
 
+        String fileTemplateScope = settings.containsKey("csv_file_template_scope")
+                        ? (String)settings.get("csv_file_template_scope") : null;
+
         String lineSeparator =
                 settings.containsKey("csv_line_separator")
                         ? (String)settings.get("csv_line_separator") : System.lineSeparator();
@@ -63,10 +66,11 @@ public class PrefilledPlugin implements IStore {
             }};
 
             try {
+
                 FileCache cache = getFileCache(
                         checkedFiles, filePath, headerTemplate, timeScope, timeSlice,
                         fileTemplate, emptyLineTemplate,
-                        numberLocale,  mi, ctx, null);
+                        numberLocale,  mi, ctx, null, fileTemplateScope);
 
                 for(Map.Entry<String, FileCache> file : checkedFiles.entrySet()) {
                     if(!file.getValue().fileExists){
@@ -134,6 +138,9 @@ public class PrefilledPlugin implements IStore {
             settings.containsKey("csv_file_template")
                 ? (String)settings.get("csv_file_template") : null;
 
+        String fileTemplateScope = settings.containsKey("csv_file_template_scope")
+                ? (String)settings.get("csv_file_template_scope") : null;
+
         String filePath =
             settings.containsKey("csv_file_path")
                 ? (String)settings.get("csv_file_path") : "./";
@@ -161,7 +168,7 @@ public class PrefilledPlugin implements IStore {
                 fileCache = getFileCache(
                     checkedFiles, filePath, headerTemplate, timeScope, timeSlice,
                     fileTemplate, emptyLineTemplate,
-                    numberLocale,  mi, ctx, item);
+                    numberLocale,  mi, ctx, item, fileTemplateScope);
 
                 lineKey = TemplateParser.parse(
                     emptyLineTemplate,
@@ -228,7 +235,8 @@ public class PrefilledPlugin implements IStore {
             String numberLocale,
             Map<String, String> mi,
             RunnerContext ctx,
-            DataItem item) throws ProcessorException {
+            DataItem item,
+            String fileTemplateScope) throws ProcessorException {
 
         FileCache fileCache;
 
@@ -273,8 +281,8 @@ public class PrefilledPlugin implements IStore {
             long timeScopeMillis = new Period(timeScope).toStandardDuration().getMillis();
             long timeSliceMillis = new Period(timeSlice).toStandardDuration().getMillis();
 
-            long startTime = ctx.getTimeFrom();
-            long timeScopeEndMillis = ctx.getTimeFrom() + timeScopeMillis;
+            long startTime = _extractStartTime(fileTemplateScope, ctx.getTimeFrom());
+            long timeScopeEndMillis = startTime + timeScopeMillis;
 
             DataItem di = DataItem.empty();
             for (long ts = startTime; ts < timeScopeEndMillis; ts += timeSliceMillis) {
@@ -310,5 +318,29 @@ public class PrefilledPlugin implements IStore {
         public boolean fileExists;
         public List<String> lineCache;
 
+    }
+
+    private long _extractStartTime(final String templateScope, final long jobStart){
+
+        if(templateScope == null){
+            return jobStart;
+        }
+
+        Calendar cal = Calendar.getInstance();
+
+        if("HOUR".equalsIgnoreCase(templateScope)){
+            cal.set(Calendar.MINUTE, cal.getMinimum(Calendar.MINUTE));
+            cal.set(Calendar.SECOND, cal.getMinimum(Calendar.SECOND));
+        } else if("DAY".equalsIgnoreCase(templateScope)){
+            cal.set(Calendar.HOUR_OF_DAY, cal.getMinimum(Calendar.HOUR_OF_DAY));
+            cal.set(Calendar.MINUTE, cal.getMinimum(Calendar.MINUTE));
+            cal.set(Calendar.SECOND, cal.getMinimum(Calendar.SECOND));
+        } else if("MONTH".equalsIgnoreCase(templateScope)){
+            cal.set(Calendar.DATE, cal.getMinimum(Calendar.DATE));
+            cal.set(Calendar.HOUR_OF_DAY, cal.getMinimum(Calendar.HOUR_OF_DAY));
+            cal.set(Calendar.MINUTE, cal.getMinimum(Calendar.MINUTE));
+            cal.set(Calendar.SECOND, cal.getMinimum(Calendar.SECOND));
+        }
+        return cal.getTimeInMillis();
     }
 }
