@@ -27,7 +27,8 @@ public class DirectorInitiator implements Job {
                 jobExecutionContext.getScheduledFireTime().getTime() - job.getDurationInMillis(),
                 jobExecutionContext.getScheduledFireTime().getTime(),
                 job.getBatchSizeInMillis(),
-                job.getTimeZone()
+                job.getTimeZone(),
+                job.getStartDelay()
             );
 
             DirectorRunner.getInstance().addContext(ctx);

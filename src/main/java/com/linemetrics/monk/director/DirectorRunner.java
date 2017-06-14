@@ -65,10 +65,9 @@ public class DirectorRunner {
                         Thread.sleep(WAIT_FOR_NEW_CONTEXT);
                         continue;
                     } else {
-                        /** Wait for 10s in order to be sure, that data is processed */
-                        Thread.sleep(10000);
+                        /** Wait for defined seconds (default=10s) in order to be sure, that data is processed */
+                        Thread.sleep(ctx.getStartDelay());
                     }
-
                     String logPrefix = "[" + ctx.getJobId() + "] ";
 
                     this.initializeEnvironment(ctx.getJobId());

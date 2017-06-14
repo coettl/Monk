@@ -66,6 +66,12 @@ public class DirectorJob {
         return new Period(getDuration()).toStandardDuration().getMillis();
     }
 
+    public long getStartDelay(){
+        return this.properties.containsKey("start_delay")
+                ? (Long)this.properties.get("start_delay")
+                : 10000;
+    }
+
     public String getProperties() {
         return properties == null ? "{}" : properties.toJSONString();
     }

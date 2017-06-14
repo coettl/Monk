@@ -75,6 +75,7 @@ public class SystemConfigStore
                 put("timezone",       propertyConfiguration.getString("job." + key + ".info.timezone"));
                 put("batch_size",     propertyConfiguration.getString("job." + key + ".info.batch_size"));
                 put("duration",       propertyConfiguration.getString("job." + key + ".info.duration"));
+                put("start_delay",    propertyConfiguration.containsKey("job." + key + ".info.start_delay")?propertyConfiguration.getLong("job." + key + ".info.start_delay"):10000);
             }});
             directorJobs.add(job);
         }

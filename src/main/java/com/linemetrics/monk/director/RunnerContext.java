@@ -11,17 +11,20 @@ public class RunnerContext {
     Long timeTo;
     Long batchSize;
     String timezone;
+    Long startDelay;
 
     public RunnerContext(
             int jobId,
             long timeFrom, long timeTo,
-            long batchSize, String timezone) {
+            long batchSize, String timezone,
+            long startDelay) {
 
         this.jobId      = jobId;
         this.timeFrom   = timeFrom;
         this.timeTo     = timeTo;
         this.batchSize  = batchSize;
         this.timezone   = timezone;
+        this.startDelay = startDelay;
     }
 
     public static RunnerContext parse(String json) throws MonkException {
@@ -36,7 +39,8 @@ public class RunnerContext {
             (Long)jsonObj.get("timeFrom"),
             (Long)jsonObj.get("timeTo"),
             (Long)jsonObj.get("batchSize"),
-            (String)jsonObj.get("timezone")
+            (String)jsonObj.get("timezone"),
+            (Long)jsonObj.get("startDelay")
         );
     }
 
@@ -47,6 +51,7 @@ public class RunnerContext {
         obj.put("timeTo", getTimeTo());
         obj.put("batchSize", getBatchSize());
         obj.put("timezone", getTimezone());
+        obj.put("startDelay", getStartDelay());
         return obj.toJSONString();
     }
 
@@ -68,5 +73,9 @@ public class RunnerContext {
 
     public String getTimezone() {
         return timezone;
+    }
+
+    public Long getStartDelay() {
+        return startDelay;
     }
 }

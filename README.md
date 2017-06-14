@@ -67,6 +67,7 @@ Die Synchronisierungseinstellungen unterteilen sich in 4 Bereiche:
     job.1.info.timezone=Europe/Vienna
     job.1.info.batch_size=PT1m
     job.1.info.duration=PT1H
+    job.1.info.start_delay=10000
 
 Alle Einstellungen die zu einem Sync Vorgang gehören, müssen die selbe `JOB ID` beinhalten. Die `JOB ID` ist
 ein ganzzahliger numerischer Wert, der selbst definiert werden kann und lediglich in der Konfiguration konsistent sein
@@ -89,6 +90,8 @@ Daten werden erst zur Laufzeit (zum Abfragezeitpunkt) in das für den Benutzer p
 Mögliche Werte: `PT1M`, `PT1H`, `P1D`
 
 `duration` legt fest, was für ein Zeitraum geladen werden soll. Angaben im ISO_8601.
+
+`start_delay` ist optional und legt fest, mit welcher Verzögerung (in ms) ein Job gestartet werden soll. Damit kann sichergestellt werden das die angeforderten Daten bereits verfügbar sind.
 
 Aus den Einstellungen lässt sich interpretieren, dass Montag-Samstag zwischen 8:00 und 17:00 Uhr zu
 jeder vollen Stunde die vergangene Stunde als Minuten Datenpunkte abgeholt wird.
@@ -359,6 +362,7 @@ Definition laut ISO8601:
     job.1.info.timezone=Europe/Vienna
     job.1.info.batch_size=PT1m
     job.1.info.duration=PT1H
+    job.1.info.start_delay=10000
 
     job.1.datastream=123
     job.1.datastream=456
@@ -399,6 +403,7 @@ Definition laut ISO8601:
     job.1.info.timezone=Europe/Vienna
     job.1.info.batch_size=PT1m
     job.1.info.duration=PT1H
+    job.1.info.start_delay=10000
 
     job.1.datastream=123
     job.1.datastream=456
