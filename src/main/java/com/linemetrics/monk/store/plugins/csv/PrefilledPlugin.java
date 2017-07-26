@@ -67,34 +67,41 @@ public class PrefilledPlugin implements IStore {
 
             try {
 
-                FileCache cache = getFileCache(
+                getFileCache(
                         checkedFiles, filePath, headerTemplate, timeScope, timeSlice,
                         fileTemplate, emptyLineTemplate,
                         numberLocale,  mi, ctx, null, fileTemplateScope);
 
-                for(Map.Entry<String, FileCache> file : checkedFiles.entrySet()) {
-                    if(!file.getValue().fileExists){
-                        try (PrintWriter out =
-                                     new PrintWriter(
-                                             new BufferedWriter(
-                                                     new FileWriter(file.getKey(), false)
-                                             )
-                                     )) {
-
-                            for(String line : cache.lineCache) {
-                                out.print(line + lineSeparator);
-                            }
-
-                        } catch (IOException e) {
-                            throw new ProcessorException("Unable to store data to CSV: " + e.getMessage());
-                        }
-                    }
-                }
             } catch(Exception e){
-                logger.error("Error storing csv file");
+                logger.error("Error initializing csv file: " + e.getMessage());
                 return false;
             }
         }
+
+        for(Map.Entry<String, FileCache> file : checkedFiles.entrySet()) {
+
+            File fold = new File(file.getKey());
+            if(fold.exists()){
+                continue;
+            }
+
+            try (PrintWriter out =
+                         new PrintWriter(
+                                 new BufferedWriter(
+                                         new FileWriter(file.getKey(), false)
+                                 )
+                         )) {
+
+                for(String line : file.getValue().lineCache) {
+                    out.print(line + lineSeparator);
+                }
+
+            } catch (Exception e) {
+                logger.error("Unable to store data to CSV: " + e.getMessage());
+                return false;
+            }
+        }
+
         return true;
     }
 
