@@ -120,7 +120,10 @@ public class TemplateParser {
     }
 
     private static String formatNumber(Number number, String format, String locale) {
-        return decimalFormat(format, locale).format(number);
+        if(number != null) {
+            return decimalFormat(format, locale).format(number);
+        }
+        return "NULL";
     }
 
     private static DecimalFormat decimalFormat(String format, String locale) {
