@@ -6,7 +6,7 @@
 
     <groupId>com.linemetrics.monk</groupId>
     <artifactId>core</artifactId>
-    <version>1.6</version>
+    <version>1.6.1</version>
     <packaging>jar</packaging>
 
     <licenses>
@@ -19,13 +19,19 @@
 
     <developers>
         <developer>
-            <id>pillmayr</id>
-            <name>Thomas Pillmayr</name>
-            <email>thomas@linemetrics.com</email>
+            <id>linemetrics-engineering-team</id>
+            <name>LineMetris engineering team</name>
+            <email>office@linemetrics.com</email>
         </developer>
     </developers>
 
     <dependencies>
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.8.1</version>
+        </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
